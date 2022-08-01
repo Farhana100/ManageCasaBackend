@@ -1,30 +1,36 @@
-from django.contrib.auth import login, logout, authenticate
-from rest_framework.authentication import SessionAuthentication, BasicAuthentication
-from rest_framework.permissions import IsAuthenticated
-from django.shortcuts import render, HttpResponse
-from rest_framework.decorators import api_view, authentication_classes, permission_classes
+from django.contrib.auth import login, authenticate
+from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from .serializer import *
 from .models import *
 
+from rest_framework_simplejwt.tokens import RefreshToken
+
+
+def get_tokens_for_user(user):
+    refresh = RefreshToken.for_user(user)
+
+    return {
+        'refresh': str(refresh),
+        'access': str(refresh.access_token),
+    }
+
 
 @api_view(['POST'])
 def userLogin(request):
-    # if request.user.is_authenticated:
-    #     return redirect('home')
-
     username = request.data['username']
     password = request.data['password']
     print(username, password)
     user = authenticate(request, username=username, password=password)
 
     if user is not None:
-        login(request._request, user)
+        token = get_tokens_for_user(user)
         to_frontend = {
             "user_active": True,
             "username": user.username,
             "userType": "",
             "msg": "Welcome " + user.username + "!",
+            "token": token,
         }
         if request.user.is_authenticated:
             try:
@@ -40,6 +46,7 @@ def userLogin(request):
             "username": None,
             "userType": None,
             "msg": "Invalid username or password",
+            "token": None,
         }
 
         return Response(to_frontend)
@@ -64,7 +71,8 @@ def getUser(request):
         "username": "Farhana100",
         "userType": "admin",
     }
-    return Response(test_to_frontend)
+    # return Response(test_to_frontend)
+    return Response(to_frontend)
 
 
 # --------------------------------------------------- Building admin start --------------------------------------->>>
@@ -82,7 +90,6 @@ def getBuilding(request, pk):
     except Building.DoesNotExist:
         return Response(None)
 
-    print(building)
     serializer = BuildingSerializer(building, many=False)
     return Response(serializer.data)
 
@@ -122,6 +129,7 @@ def createBuilding(request):
     user.delete()
     return Response(None)
 
+
 # --------------------------------------------------- Building admin end --------------------------------------->>>
 
 
@@ -131,7 +139,7 @@ def getAllOwners(request, username):
     owners = Owner.objects.all().filter(apartment__building__user__username=username)
     data = []
 
-    for owner in owners :
+    for owner in owners:
         data.append({
 
         })
@@ -189,6 +197,7 @@ def createOwner(request):
     # print('Error: Building object could not be created 2')
     # user.delete()
     return Response(None)
+
 
 # --------------------------------------------------- Owner end ------------------------------------------------>>>
 # --------------------------------------------------- Tenant start --------------------------------------------->>>
