@@ -28,7 +28,7 @@ def userLogin(request):
         to_frontend = {
             "user_active": True,
             "username": user.username,
-            "userType": "",
+            "userType": "admin",
             "msg": "Welcome " + user.username + "!",
             "token": token,
         }
