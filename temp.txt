@@ -1,0 +1,10 @@
+{
+        "username": "Farhana",
+	"password": "managecasa",
+	"email": "Farhana@managecasa.com",
+        "phone_number": 1554431224,
+        "bkash_acc_number": 1552431225,
+	"building": "building1",
+	"apartment": "1A"
+
+    }

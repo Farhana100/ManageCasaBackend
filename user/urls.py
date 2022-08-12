@@ -9,6 +9,7 @@ urlpatterns = [
     path('createBuilding', createBuilding, name='createBuilding'),
 
     path('getAllOwners/<str:username>', getAllOwners, name='getAllOwners'),
-
     path('getAllTenants/<str:username>', getAllTenants, name='getAllTenants'),
+    path('createOwner', createOwner, name='createOwner'),
+    path('getAllApartmentsOfOwner/<str:username>', getAllApartmentsOfOwner, name='getAllApartmentsOfOwner'),
 ]

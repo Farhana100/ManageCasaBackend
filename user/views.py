@@ -1,8 +1,10 @@
-from django.contrib.auth import login, authenticate
+from django.contrib.auth import authenticate
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from .serializer import *
+from apartment.serializer import *
 from .models import *
+from apartment.models import *
 
 from rest_framework_simplejwt.tokens import RefreshToken
 
@@ -137,18 +139,19 @@ def createBuilding(request):
 @api_view(['GET'])
 def getAllOwners(request, username):
     owners = Owner.objects.all().filter(apartment__building__user__username=username)
-    data = []
-
-    for owner in owners:
-        data.append({
-
-        })
 
     data = OwnerSerializer(owners, many=True).data
-    for d in data:
-        d['username'] = owners.filter(apartment__building__user_id=d['user'])
 
-    return Response(data)
+    owners = []
+    temp = []
+
+    for own in data:
+        if temp.count(own['user']) == 0:
+            temp.append(own['user'])
+            owners.append(own)
+
+
+    return Response(owners)
 
 
 @api_view(['GET'])
@@ -166,37 +169,81 @@ def getOwner(request, pk):
 @api_view(['POST'])
 def createOwner(request):
     print("data ", request.data)
-    # user = request.data['user']
-    # owner = request.data['owner']
-    #
-    # try:
-    #     User(username=user['username'], password=user['password'], email=user['email']).save()
-    # except:
-    #     print('Error: User object could not be created 1')
-    #     return Response(None)
-    #
-    # try:
-    #     user = User.objects.get(username=user['username'])
-    # except User.DoesNotExist:
-    #     print('Error: User object could not be created 2')
-    #     return Response(None)
-    #
-    # building['user'] = user.id
-    # building = BuildingSerializer(data=building)
-    #
-    # if building.is_valid():
-    #     try:
-    #         building.save()
-    #     except:
-    #         print('Error: Building object could not be created 1')
-    #         user.delete()
-    #         return Response(None)
-    #
-    #     return Response(building.data)
-    #
-    # print('Error: Building object could not be created 2')
-    # user.delete()
+    username = request.data['username']
+    building = request.data['building']
+    apartment_number = request.data['apartment']
+    print(username)
+
+    # create user
+
+
+    user = None
+    owner = None
+    # get user
+
+    try:
+        # owner already exists
+        user = User.objects.get(username=username)
+        try:
+            owner = Owner.objects.get(user=user)
+        except Owner.DoesNotExist:
+            print('Error: User object could not be created 2')
+            return Response(None)
+
+    except User.DoesNotExist:
+
+        # create owner
+        password = request.data['password']
+        email = request.data['email']
+        phone_number = request.data['phone_number']
+        bkash_acc_number = request.data['bkash_acc_number']
+
+        # user
+        try:
+            User(username=username, password=password, email=email).save()
+        except:
+            print('Error: User object could not be created 1')
+            return Response(None)
+        user = User.objects.get(username=username)
+
+        # owner
+        try:
+            Owner(user=user, phone_number=phone_number, bkash_acc_number=bkash_acc_number).save()
+        except:
+            print('Error: Owner object could not be created 3')
+            return Response(None)
+
+        owner = Owner.objects.get(user=user)
+
+
+    print(user, owner)
+    # get apartment
+    apartment = None
+    try:
+        apartment = Apartment.objects.get(building__user__username=building, apartment_number=apartment_number)
+    except Apartment.DoesNotExist:
+        print('Error: apartment not found 4')
+        return Response(None)
+
+    if(apartment and user and owner):
+        apartment.owner = owner
+        apartment.save()
+
+
+    print(apartment)
+
     return Response(None)
+
+
+
+@api_view(['GET'])
+def getAllApartmentsOfOwner(request, username):
+    print(username)
+    apartments = Apartment.objects.filter(owner__user__username=username)
+    apartments = ApartmentSerializer(apartments, many=True).data
+
+    return Response(apartments)
+
 
 
 # --------------------------------------------------- Owner end ------------------------------------------------>>>
