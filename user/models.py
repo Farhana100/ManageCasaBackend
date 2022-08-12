@@ -3,6 +3,8 @@ from uuid import uuid4
 from django.db import models
 from django.contrib.auth.models import User
 
+from apartment.models import Apartment
+
 
 def get_owner_image_upload_path(instance, name):
     # file will be uploaded to MEDIA_ROOT/owner_images/<filename>
@@ -18,6 +20,7 @@ def get_tenant_image_upload_path(instance, name):
     ext = name.split('.')[-1]
     filename = '{}.{}'.format(uuid4().hex, ext)
     return 'tenant_images/{0}'.format(filename)
+
 
 
 class Building(models.Model):
@@ -36,10 +39,13 @@ class Building(models.Model):
 
 
 class Owner(models.Model):
+    
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     image = models.ImageField(upload_to=get_owner_image_upload_path, null=True, blank=True)
     phone_number = models.IntegerField(default=0, blank=True, null=True)
     bkash_acc_number = models.IntegerField(default=0)
+    
+    
 
     def __str__(self):
         return self.user.username

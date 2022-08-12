@@ -1,6 +1,8 @@
 from django.contrib.auth import login, authenticate
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+
+import apartment
 from .serializer import *
 from .models import *
 
@@ -161,42 +163,9 @@ def getOwner(request, pk):
     print(owner)
     serializer = OwnerSerializer(owner, many=False)
     return Response(serializer.data)
+  
 
-
-@api_view(['POST'])
-def createOwner(request):
-    print("data ", request.data)
-    # user = request.data['user']
-    # owner = request.data['owner']
-    #
-    # try:
-    #     User(username=user['username'], password=user['password'], email=user['email']).save()
-    # except:
-    #     print('Error: User object could not be created 1')
-    #     return Response(None)
-    #
-    # try:
-    #     user = User.objects.get(username=user['username'])
-    # except User.DoesNotExist:
-    #     print('Error: User object could not be created 2')
-    #     return Response(None)
-    #
-    # building['user'] = user.id
-    # building = BuildingSerializer(data=building)
-    #
-    # if building.is_valid():
-    #     try:
-    #         building.save()
-    #     except:
-    #         print('Error: Building object could not be created 1')
-    #         user.delete()
-    #         return Response(None)
-    #
-    #     return Response(building.data)
-    #
-    # print('Error: Building object could not be created 2')
-    # user.delete()
-    return Response(None)
+    
 
 
 # --------------------------------------------------- Owner end ------------------------------------------------>>>
