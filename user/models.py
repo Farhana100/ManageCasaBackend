@@ -3,7 +3,7 @@ from uuid import uuid4
 from django.db import models
 from django.contrib.auth.models import User
 
-from apartment.models import Apartment
+# from apartment.models import Apartment
 
 
 def get_owner_image_upload_path(instance, name):
