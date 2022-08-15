@@ -11,6 +11,7 @@ from rest_framework_simplejwt.views import (
 urlpatterns = [
     path('', include('user.urls')),
     path('', include('apartment.urls')),
+    path('', include('election.urls')),
     path('admin/', admin.site.urls),
 
     # auth token
