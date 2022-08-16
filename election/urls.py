@@ -4,5 +4,6 @@ from .views import *
 urlpatterns = [
     path('getAllElections', getAllElections, name='getAllElections'),
     path('getElection/<int:pk>', getElection, name='getElection'),
+    path('getNominees/<int:key>', getNominees, name='getNominees'),
     
 ]

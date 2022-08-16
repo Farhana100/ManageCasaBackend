@@ -29,3 +29,18 @@ def getElection(request, pk):
     return Response(serializer.data)
 
 
+@api_view(['GET'])
+def getNominees(request, key):
+    nominees = Nominee.objects.filter(committee_election=key)
+    serializer = NomineeSerializer(nominees, many=True)
+    
+    data = [ dict(each) for each in serializer.data ]
+    
+    for each in data:
+        each['owner_name'] = Owner.objects.get(pk=each.get('owner')).user.username
+    
+    print(data)
+    
+    return Response(data)
+
+
