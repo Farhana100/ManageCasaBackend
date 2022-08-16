@@ -1,4 +1,4 @@
-from turtle import position
+# from turtle import position
 from django.db import models
 from user.models import *
 from apartment.models import *
@@ -8,14 +8,14 @@ from apartment.models import *
 class CommitteeElection(models.Model):
     id = models.AutoField(primary_key=True)
     building = models.ForeignKey(Building, null=False, on_delete=models.CASCADE)
-    phase = models.CharField(max_length=30, null=True)
+    phase = models.CharField(max_length=30, null=True, blank=True)
     elected_member = models.ForeignKey(Owner, blank=True, null=True, on_delete=models.SET_NULL)
     position = models.CharField(max_length=30, null=False)
     creation_time = models.DateTimeField(auto_now_add=True)
-    nomination_start_time = models.DateTimeField(null=True)
-    nomination_end_time = models.DateTimeField(null=True)
-    voting_start_time = models.DateTimeField(null=True)
-    voting_end_time = models.DateTimeField(null=True)
+    nomination_start_time = models.DateTimeField(null=True, blank=True)
+    nomination_end_time = models.DateTimeField(null=True, blank=True)
+    voting_start_time = models.DateTimeField(null=True, blank=True)
+    voting_end_time = models.DateTimeField(null=True, blank=True)
     vote_count = models.IntegerField(default=0)
     
     

@@ -1,3 +1,4 @@
+from turtle import position
 from django.shortcuts import render
 from django.contrib.auth import authenticate
 from rest_framework.decorators import api_view
@@ -43,4 +44,33 @@ def getNominees(request, key):
     
     return Response(data)
 
+@api_view(['POST'])
+def createElection(request):
+    print(request.data)
+    position = request.data['positionData']
+    nom_start = request.data['nomstartData']
+    nom_end = request.data['nomendData']
+    vote_start = request.data['votestartData']
+    vote_end = request.data['voteendData']
+    
+    building = Building.objects.get(user__username="building1")
+    
+    
+    to_frontend = {
+        "success": False,
+        "msg": "",
+        
+    }
+    
+    #create election
+    try:
+        CommitteeElection(building = building, phase = "pending", position=position, nomination_start_time = nom_start, nomination_end_time = nom_end, voting_start_time = vote_start, voting_end_time = vote_end).save()
+    except:
+        print('Error: User object could not be created 1')
+        to_frontend['msg'] = "election not created!"
+        return Response(to_frontend)
+    
+    to_frontend['success'] = True;
+    to_frontend['msg'] = "election created successfully" ;
+    return Response(to_frontend)
 
