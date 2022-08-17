@@ -30,16 +30,26 @@ def userLogin(request):
         to_frontend = {
             "user_active": True,
             "username": user.username,
-            "userType": "admin",
+            "userType": None,
             "msg": "Welcome " + user.username + "!",
             "token": token,
         }
-        if request.user.is_authenticated:
+
+        try:
+            user.building
+            to_frontend['userType'] = 'admin'
+        except AttributeError:
             try:
-                print('user autheticated')
-                to_frontend['userType'] = 'admin'
+                user.owner
+                to_frontend['userType'] = 'owner'
             except AttributeError:
-                pass
+                try:
+                    user.tenant
+                    to_frontend['userType'] = 'tenant'
+                except AttributeError:
+                    to_frontend['userType'] = None
+
+        print(to_frontend)
 
         return Response(to_frontend)
     else:
