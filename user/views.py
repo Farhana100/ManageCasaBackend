@@ -33,19 +33,23 @@ def userLogin(request):
             "userType": None,
             "msg": "Welcome " + user.username + "!",
             "token": token,
+            "building": '',
         }
 
         try:
             user.building
             to_frontend['userType'] = 'admin'
+            to_frontend['building'] = user.username
         except AttributeError:
             try:
                 user.owner
                 to_frontend['userType'] = 'owner'
+                to_frontend['building'] = Apartment.objects.filter(owner=user.owner)[0].building.user.username
             except AttributeError:
                 try:
                     user.tenant
                     to_frontend['userType'] = 'tenant'
+                    to_frontend['building'] = Apartment.objects.filter(tenant=user.tenant)[0].building.user.username
                 except AttributeError:
                     to_frontend['userType'] = None
 

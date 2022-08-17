@@ -48,6 +48,8 @@ class Owner(models.Model):
     # floor_no = models.IntegerField(default=0)
 
     def __str__(self):
+        if self.user.first_name and self.user.last_name:
+            return self.user.first_name + ' ' + self.user.last_name
         return self.user.username
 
     def get_image(self):
@@ -70,6 +72,8 @@ class Tenant(models.Model):
     # floor_no = models.IntegerField(default=0)
 
     def __str__(self):
+        if self.user.first_name and self.user.last_name:
+            return self.user.first_name + ' ' + self.user.last_name
         return self.user.username
 
     def get_image(self):

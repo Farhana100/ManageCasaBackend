@@ -7,35 +7,67 @@ from rest_framework.response import Response
 from .serializer import *
 from .models import *
 
+
 # --------------------------------------------------- Building admin start --------------------------------------->>>
 @api_view(['GET'])
 def getAllApartments(request, username):
     apartments = Apartment.objects.all().filter(building__user__username=username)
-    serializer = ApartmentSerializer(apartments, many=True)
-    return Response(serializer.data)
+
+    all_apartments = {}
+
+    for apartment in apartments:
+        image = ApartmentImage.objects.filter(apartment=apartment)
+        if image:
+            image = image[0].get_image()
+        else:
+            image = None
+
+        if str(apartment.floor_number) in all_apartments:
+            all_apartments[str(apartment.floor_number)].append({
+                'id': apartment.id,
+                'floor_number': apartment.floor_number,
+                'apartment_number': apartment.apartment_number,
+                'owner': str(apartment.owner),
+                'tenant': str(apartment.tenant),
+                'image': image
+            })
+        else:
+            all_apartments[str(apartment.floor_number)] = [{
+                'id': apartment.id,
+                'floor_number': apartment.floor_number,
+                'apartment_number': apartment.apartment_number,
+                'owner': str(apartment.owner),
+                'tenant': str(apartment.tenant),
+                'image': image
+            }]
+
+    print(all_apartments)
+    return Response(all_apartments)
+
 
 @api_view(['GET'])
 def getApartment(request, pk):
-
     to_frontend = {
         "none": True,
     }
-    print(type(pk))
     try:
         apartment = Apartment.objects.get(id=pk)
     except Apartment.DoesNotExist:
-        print("why are you here?")
         return Response(to_frontend)
 
+    # apartment images
+    images = ApartmentImage.objects.all().filter(apartment=apartment)
+
+    images = [img.get_image() for img in images]
+
+    print(images)
+
     to_frontend['apartment_pk'] = apartment.pk
-    print(apartment.pk)
     to_frontend['apartment_floor_number'] = apartment.floor_number
-    print(apartment.floor_number)
     to_frontend['apartment_number'] = apartment.apartment_number
-    print(apartment.apartment_number)
     to_frontend['apartment_building_address'] = apartment.building.address
-    print(apartment.building.address)
-    print()
+    to_frontend['apartment_images'] = images
+
     to_frontend['apartment_owner'] = apartment.owner
     if apartment.owner:
         to_frontend['apartment_owner'] = apartment.owner.pk
@@ -44,8 +76,6 @@ def getApartment(request, pk):
         to_frontend['owner_phone_number'] = apartment.owner.phone_number
         to_frontend['owner_image'] = apartment.owner.get_image()
 
-    print(apartment.owner)
-    print()
     to_frontend['apartment_tenant'] = apartment.tenant
     if apartment.tenant:
         to_frontend['apartment_tenant'] = apartment.tenant.pk
@@ -60,11 +90,8 @@ def getApartment(request, pk):
     to_frontend['apartment_rent'] = apartment.rent
     print(apartment.rent)
 
-    apartment = ApartmentSerializer(apartment, many=False).data
-
     print("here-------")
     print(to_frontend)
-    # to_frontend['apartment'] = apartment
     to_frontend['none'] = False
 
     return Response(to_frontend)

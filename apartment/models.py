@@ -1,5 +1,13 @@
 from django.db import models
 from user.models import *
+from uuid import uuid4
+
+def get_apartment_image_upload_path(instance, name):
+    # file will be uploaded to MEDIA_ROOT/apartment_images/<filename>
+    # file named by UUID
+    ext = name.split('.')[-1]
+    filename = '{}.{}'.format(uuid4().hex, ext)
+    return 'apartment_images/{0}'.format(filename)
 
 
 class Apartment(models.Model):
@@ -12,7 +20,24 @@ class Apartment(models.Model):
     service_charge_due_amount = models.IntegerField(default=0, blank=True, null=True)
 
     def __str__(self):
-        return self.apartment_number
+        return str(self.building) + '_' + self.apartment_number
 
     class Meta:
         db_table = 'apartment'
+
+
+class ApartmentImage(models.Model):
+    apartment = models.ForeignKey(Apartment, null=False, on_delete=models.CASCADE)
+    image = models.ImageField(upload_to=get_apartment_image_upload_path, null=True, blank=True)
+
+    def __str__(self):
+        return self.get_image()
+
+    def get_image(self):
+        if self.image and hasattr(self.image, 'url'):
+            return self.image.url
+        return None
+
+    class Meta:
+        db_table = 'apartment_image'
+
