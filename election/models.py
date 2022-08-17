@@ -17,6 +17,7 @@ class CommitteeElection(models.Model):
     voting_start_time = models.DateTimeField(null=True, blank=True)
     voting_end_time = models.DateTimeField(null=True, blank=True)
     vote_count = models.IntegerField(default=0)
+    no_of_candidates = models.IntegerField(default=0)
     
     
     def __int__(self):

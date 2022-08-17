@@ -1,9 +1,4 @@
-from nis import cat
-from tkinter.messagebox import NO
-from turtle import position
-from urllib import request
-from django.shortcuts import render
-from django.contrib.auth import authenticate
+import datetime
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from .serializer import *
@@ -12,6 +7,8 @@ from user.serializer import *
 from .models import *
 from apartment.models import *
 from user.models import *
+import pytz
+from django.utils import timezone
 
 from rest_framework_simplejwt.tokens import RefreshToken
 
@@ -52,7 +49,28 @@ def createElection(request):
 
 @api_view(['GET'])
 def getAllElections(request):
+    utc=pytz.UTC
+    current_time = timezone.now()
     elections = CommitteeElection.objects.all()
+    
+    
+    for each in elections:
+        #voting end time < current time
+        if each.voting_end_time <= current_time:
+            CommitteeElection.objects.filter(pk = each.id).update(phase = "ended")
+            nominees = Nominee.objects.filter(committee_election = each.id)
+            print(nominees)
+            vote_max_count = 0;
+            nominee_id = ""
+            for nom in nominees:
+                if nom.vote_count > vote_max_count:
+                    vote_max_count = nom.vote_count
+                    nominee_id = nom.owner
+            
+            CommitteeElection.objects.filter(pk = each.id).update(elected_member = nominee_id)
+        
+        # 
+    
     serializer = CommitteeElectionSerializer(elections, many=True)
     return Response(serializer.data)
 
@@ -61,6 +79,7 @@ def getAllElections(request):
 def getElection(request, pk):
     try:
         election = CommitteeElection.objects.get(id=pk)
+        
     except CommitteeElection.DoesNotExist:
         return Response(None)
 
@@ -94,17 +113,21 @@ def createNominee(request):
 
     ownerID = Owner.objects.get(user__username=name)
     election = CommitteeElection(id=electionID)
+    
+    candidate_no = CommitteeElection.objects.get(id=electionID).no_of_candidates
 
     to_frontend = {
         "success": False,
         "msg": "",
     }
 
-    #create election
+    #create nominee
     try:
         Nominee(owner=ownerID,
                 committee_election=election,
                 approval_status=approval_status).save()
+        
+        CommitteeElection.objects.filter(id=electionID).update(no_of_candidates = candidate_no + 1)
     except:
         print('Error: Nominee object could not be created 1')
         to_frontend['msg'] = "nominee not created!"
@@ -127,7 +150,7 @@ def getNominees(request, key):
         each['owner_name'] = Owner.objects.get(
             pk=each.get('owner')).user.username
 
-    print(data)
+    # print(data)
 
     return Response(data)
 
@@ -168,7 +191,7 @@ def castVote(request):
     voter = request.data['voter']
 
     nomineeOwner = Owner.objects.get(user__username=name)
-    nomineeID = Nominee.objects.get(owner=nomineeOwner)
+    nomineeID = Nominee.objects.get(owner=nomineeOwner, committee_election = electionID)
     voterID = Owner.objects.get(user__username=voter)
     election = CommitteeElection.objects.get(id=electionID)
     
@@ -221,12 +244,19 @@ def getElectionVote(request, pk):
         "success": False,
         "msg": "",
         "vote_existed": False,
+        "nominee": "",
     }
     
     if CommitteeElectionVote.objects.filter(committee_election = pk, owner = ownerID).exists():
+        nom_obj = CommitteeElectionVote.objects.get(committee_election = pk, owner = ownerID).nominee
+        owner_name = nom_obj.owner
+        nom_name = owner_name.user.username
+        print(type(nom_name))
+        print(name)
         to_frontend['success'] = True
         to_frontend['msg'] = "vote existed"
         to_frontend['vote_existed'] = True
+        to_frontend['nominee'] = nom_name
         print("vote existed")
         return Response(to_frontend)
     
@@ -259,3 +289,14 @@ def isNominee(request, pk):
     to_frontend['success'] = True
     print("nominee not existed")
     return Response(to_frontend)
+
+
+@api_view(['POST'])
+def earlyStop(request, pk):
+    CommitteeElection.objects.filter(pk = pk).update(phase = "ended", voting_end_time = timezone.now())
+    to_frontend = {
+        "success": True,
+    }
+    
+    return Response(to_frontend)
+    
