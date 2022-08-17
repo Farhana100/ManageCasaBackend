@@ -30,6 +30,7 @@ class Nominee(models.Model):
     committee_election = models.ForeignKey(CommitteeElection, null=False, on_delete=models.CASCADE)
     owner = models.ForeignKey(Owner, null=True, on_delete=models.SET_NULL)
     approval_status = models.CharField(max_length=30, null=False)
+    vote_count = models.IntegerField(default=0)
     
     
     def __int__(self):
