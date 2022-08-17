@@ -12,7 +12,6 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 @api_view(['POST'])
 def createElection(request):
-    print(request.data)
     position = request.data['positionData']
     nom_start = request.data['nomstartData']
     nom_end = request.data['nomendData']
@@ -64,8 +63,6 @@ def getElection(request, pk):
 
 @api_view(['POST'])
 def deleteElection(request, pk):
-    # electionID = request.data['electionID']
-    print(pk)
     to_frontend = {
         "success": False,
         "msg": "",
@@ -85,7 +82,6 @@ def deleteElection(request, pk):
 
 @api_view(['POST'])
 def createNominee(request):
-    print("bleh: ", request.data)
     name = request.data['name']
     electionID = request.data['election_id']
     approval_status = request.data['approval_status']
@@ -132,7 +128,6 @@ def getNominees(request, key):
 
 @api_view(['POST'])
 def approveNominee(request):
-    print("bleh: ", request.data)
     name = request.data['name']
     electionID = request.data['election_id']
     approval_status = request.data['approval_status']
@@ -162,7 +157,6 @@ def approveNominee(request):
 
 @api_view(['POST'])
 def castVote(request):
-    print("bleh: ", request.data)
     name = request.data['name']
     electionID = request.data['electionID']
     voter = request.data['voter']
@@ -212,6 +206,50 @@ def castVote(request):
     return Response(to_frontend)
 
 
-@api_view(['GET'])
-def getVoteInfo():
-    return Response(None)
+@api_view(['POST'])
+def getElectionVote(request, pk):
+    name = request.data['votername']
+    
+    ownerID = Owner.objects.get(user__username = name)
+    to_frontend = {
+        "success": False,
+        "msg": "",
+        "vote_existed": False,
+    }
+    
+    if CommitteeElectionVote.objects.filter(committee_election = pk, owner = ownerID).exists():
+        to_frontend['success'] = True
+        to_frontend['msg'] = "vote existed"
+        to_frontend['vote_existed'] = True
+        print("vote existed")
+        return Response(to_frontend)
+    
+    to_frontend['msg'] = "vote not existed"
+    to_frontend['success'] = True
+    print("vote not existed")
+    return Response(to_frontend)
+
+
+
+@api_view(['POST'])
+def isNominee(request, pk):
+    name = request.data['nominee_name']
+    
+    ownerID = Owner.objects.get(user__username = name)
+    to_frontend = {
+        "success": False,
+        "msg": "",
+        "nominee_existed": False,
+    }
+    
+    if Nominee.objects.filter(committee_election = pk, owner = ownerID).exists():
+        to_frontend['success'] = True
+        to_frontend['msg'] = "nominee existed"
+        to_frontend['nominee_existed'] = True
+        print("nominee existed")
+        return Response(to_frontend)
+    
+    to_frontend['msg'] = "nominee not existed"
+    to_frontend['success'] = True
+    print("nominee not existed")
+    return Response(to_frontend)
