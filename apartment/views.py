@@ -16,14 +16,58 @@ def getAllApartments(request, username):
 
 @api_view(['GET'])
 def getApartment(request, pk):
+
+    to_frontend = {
+        "none": True,
+    }
+    print(type(pk))
     try:
         apartment = Apartment.objects.get(id=pk)
     except Apartment.DoesNotExist:
-        return Response(None)
+        print("why are you here?")
+        return Response(to_frontend)
 
-    print(apartment)
-    serializer = ApartmentSerializer(apartment, many=False)
-    return Response(serializer.data)
+    to_frontend['apartment_pk'] = apartment.pk
+    print(apartment.pk)
+    to_frontend['apartment_floor_number'] = apartment.floor_number
+    print(apartment.floor_number)
+    to_frontend['apartment_number'] = apartment.apartment_number
+    print(apartment.apartment_number)
+    to_frontend['apartment_building_address'] = apartment.building.address
+    print(apartment.building.address)
+    print()
+    to_frontend['apartment_owner'] = apartment.owner
+    if apartment.owner:
+        to_frontend['apartment_owner'] = apartment.owner.pk
+        to_frontend['owner_name'] = apartment.owner.user.first_name + ' ' + apartment.owner.user.last_name
+        to_frontend['owner_bkash_acc_number'] = apartment.owner.bkash_acc_number
+        to_frontend['owner_phone_number'] = apartment.owner.phone_number
+        to_frontend['owner_image'] = apartment.owner.get_image()
+
+    print(apartment.owner)
+    print()
+    to_frontend['apartment_tenant'] = apartment.tenant
+    if apartment.tenant:
+        to_frontend['apartment_tenant'] = apartment.tenant.pk
+        to_frontend['tenant_name'] = apartment.tenant.user.first_name + ' ' + apartment.tenant.user.last_name
+        to_frontend['tenant_bkash_acc_number'] = apartment.tenant.bkash_acc_number
+        to_frontend['tenant_phone_number'] = apartment.tenant.phone_number
+        to_frontend['tenant_arrival_date'] = apartment.tenant.arrival_date
+        to_frontend['tenant_departure_date'] = apartment.tenant.departure_date
+        to_frontend['tenant_image'] = apartment.tenant.get_image()
+
+    print(apartment.tenant)
+    to_frontend['apartment_rent'] = apartment.rent
+    print(apartment.rent)
+
+    apartment = ApartmentSerializer(apartment, many=False).data
+
+    print("here-------")
+    print(to_frontend)
+    # to_frontend['apartment'] = apartment
+    to_frontend['none'] = False
+
+    return Response(to_frontend)
 
 
 @api_view(['POST'])
