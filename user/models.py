@@ -44,10 +44,12 @@ class Owner(models.Model):
     image = models.ImageField(upload_to=get_owner_image_upload_path, null=True, blank=True)
     phone_number = models.IntegerField(default=0, blank=True, null=True)
     bkash_acc_number = models.IntegerField(default=0)
-    unit_no = models.CharField(max_length=30, null=True, blank=True)
-    floor_no = models.IntegerField(default=0)
+    # unit_no = models.CharField(max_length=30, null=True, blank=True)
+    # floor_no = models.IntegerField(default=0)
 
     def __str__(self):
+        if self.user.first_name and self.user.last_name:
+            return self.user.first_name + ' ' + self.user.last_name
         return self.user.username
 
     def get_image(self):
@@ -63,12 +65,15 @@ class Tenant(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     image = models.ImageField(upload_to=get_tenant_image_upload_path, null=True, blank=True)
     phone_number = models.IntegerField(default=0, blank=True, null=True)
+    bkash_acc_number = models.IntegerField(default=0)
     arrival_date = models.DateTimeField(default=None, blank=True, null=True)
     departure_date = models.DateTimeField(default=None, blank=True, null=True)
-    unit_no = models.CharField(max_length=30, null=True, blank=True)
-    floor_no = models.IntegerField(default=0)
+    # unit_no = models.CharField(max_length=30, null=True, blank=True)
+    # floor_no = models.IntegerField(default=0)
 
     def __str__(self):
+        if self.user.first_name and self.user.last_name:
+            return self.user.first_name + ' ' + self.user.last_name
         return self.user.username
 
     def get_image(self):

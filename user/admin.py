@@ -7,11 +7,11 @@ class BuildingAdmin(admin.ModelAdmin):
 
 
 class OwnerAdmin(admin.ModelAdmin):
-    list_display = ('user', 'phone_number', 'bkash_acc_number', 'unit_no', 'floor_no')
+    list_display = ('user', 'phone_number', 'bkash_acc_number')
 
 
 class TenantAdmin(admin.ModelAdmin):
-    list_display = ('user', 'phone_number', 'arrival_date', 'departure_date', 'unit_no', 'floor_no')
+    list_display = ('user', 'phone_number', 'bkash_acc_number', 'arrival_date', 'departure_date')
 
 
 admin.site.register(Building, BuildingAdmin)
