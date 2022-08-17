@@ -52,13 +52,11 @@ def getAllElections(request):
     current_time = timezone.now()
     elections = CommitteeElection.objects.all()
     
-    
     for each in elections:
         #voting end time < current time
-        if each.voting_end_time <= current_time:
+        if each.voting_end_time <= current_time and each.phase == "voting":
             CommitteeElection.objects.filter(pk = each.id).update(phase = "ended")
             nominees = Nominee.objects.filter(committee_election = each.id)
-            print(nominees)
             vote_max_count = 0;
             nominee_id = ""
             for nom in nominees:
@@ -68,7 +66,18 @@ def getAllElections(request):
             
             CommitteeElection.objects.filter(pk = each.id).update(elected_member = nominee_id)
         
-        # 
+        #voting start time < current time
+        elif each.voting_start_time <= current_time and (each.phase == "pending" or each.phase == "nomination"):
+            print("dhukechi!")
+            CommitteeElection.objects.filter(pk = each.id).update(phase = "voting")
+            
+        #nomination end time < current time
+        elif each.nomination_end_time <= current_time and each.phase == "nomination":
+            CommitteeElection.objects.filter(pk = each.id).update(phase = "pending")
+            
+        #nomination start time < current time
+        elif each.nomination_start_time <= current_time and each.phase == "pending":
+            CommitteeElection.objects.filter(pk = each.id).update(phase = "nomination")
     
     serializer = CommitteeElectionSerializer(elections, many=True)
     return Response(serializer.data)
