@@ -94,8 +94,48 @@ def getApartment(request, pk):
 
 
 @api_view(['POST'])
-def createapartment(request):
+def createApartment(request):
+    building = request.data['building']
+    floor_number = request.data['floor_number']
+    apartment_number = request.data['apartment_number']
+    rent = request.data['rent']
+    service_charge_due_amount = request.data['service_charge_due_amount']
 
-    return Response(None)
+    print("test print --------------------------------")
+    print(request.data)
+
+    # to_frontend = {
+    #     'msg': 'test',
+    #     'error': True,
+    # }
+    # return Response(to_frontend)
+
+    try:
+        building = Building.objects.get(user__username=building)
+    except Building.DoesNotExist:
+        to_frontend = {
+            'msg': 'Building does not exist',
+            'error': True,
+        }
+        return Response(to_frontend)
+
+    try:
+        Apartment(building=building,
+                  floor_number=floor_number,
+                  apartment_number=apartment_number,
+                  rent=rent,
+                  service_charge_due_amount=service_charge_due_amount).save()
+    except:
+        to_frontend = {
+            'msg': 'Apartment could not be created',
+            'error': True,
+        }
+        return Response(to_frontend)
+
+    to_frontend = {
+        'msg': 'Apartment created successfully',
+        'error': False,
+    }
+    return Response(to_frontend)
 
 # --------------------------------------------------- Building admin end --------------------------------------->>>
