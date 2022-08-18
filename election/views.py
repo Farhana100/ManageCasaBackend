@@ -1,3 +1,4 @@
+from turtle import position
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from .serializer import *
@@ -47,7 +48,7 @@ def createElection(request):
 
 
 @api_view(['GET'])
-def getAllElections(request):
+def getAllElections(request, username):
     utc=pytz.UTC
     current_time = timezone.now()
     elections = CommitteeElection.objects.all()
@@ -65,7 +66,18 @@ def getAllElections(request):
                     nominee_id = nom.owner
             
             CommitteeElection.objects.filter(pk = each.id).update(elected_member = nominee_id)
-        
+            # CommitteeMember(owner=each.elected_member, position=each.position, committee_election=each, status="active", start_date=timezone.now()).save()
+            # CommitteeMember.objects.filter(building=username, position=each.position).update(status = "inactive")    
+            # obj = CommitteeMember()
+            # obj.committee_election = each.id
+            # obj.owner = each.elected_member
+            # obj.position = each.position
+            # obj.status = "active"
+            # obj.start_date = timezone.now()
+            # obj.save()
+            
+            
+            
         #voting start time < current time
         elif each.voting_start_time <= current_time and (each.phase == "pending" or each.phase == "nomination"):
             print("dhukechi!")
@@ -122,7 +134,7 @@ def createNominee(request):
     ownerID = Owner.objects.get(user__username=name)
     election = CommitteeElection(id=electionID)
     
-    candidate_no = CommitteeElection.objects.get(id=electionID).no_of_candidates
+    # candidate_no = CommitteeElection.objects.get(id=electionID).no_of_candidates
 
     to_frontend = {
         "success": False,
@@ -135,7 +147,7 @@ def createNominee(request):
                 committee_election=election,
                 approval_status=approval_status).save()
         
-        CommitteeElection.objects.filter(id=electionID).update(no_of_candidates = candidate_no + 1)
+        # CommitteeElection.objects.filter(id=electionID).update(no_of_candidates = candidate_no + 1)
     except:
         print('Error: Nominee object could not be created 1')
         to_frontend['msg'] = "nominee not created!"
@@ -171,6 +183,8 @@ def approveNominee(request):
 
     ownerID = Owner.objects.get(user__username=name)
     election = CommitteeElection(id=electionID)
+    
+    candidate_no = CommitteeElection.objects.get(id=electionID).no_of_candidates
 
     to_frontend = {
         "success": False,
@@ -181,6 +195,7 @@ def approveNominee(request):
         Nominee.objects.filter(owner=ownerID,
                                committee_election=election).update(
                                    approval_status=approval_status)
+        CommitteeElection.objects.filter(id=electionID).update(no_of_candidates = candidate_no + 1)
     except:
         print('Error: Nominee object could not be created 1')
         to_frontend['msg'] = "nominee not approved!"

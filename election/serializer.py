@@ -16,3 +16,8 @@ class CommitteeElectionVoteSerializer(serializers.ModelSerializer):
     class Meta:
         model = CommitteeElectionVote
         fields = '__all__'
+        
+class CommitteeMemberSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CommitteeMember
+        fields = '__all__'
