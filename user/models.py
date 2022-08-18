@@ -39,7 +39,6 @@ class Building(models.Model):
 
 
 class Owner(models.Model):
-    
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     image = models.ImageField(upload_to=get_owner_image_upload_path, null=True, blank=True)
     phone_number = models.IntegerField(default=0, blank=True, null=True)
@@ -59,6 +58,7 @@ class Owner(models.Model):
 
     class Meta:
         db_table = 'owner'
+
 
 
 class Tenant(models.Model):
