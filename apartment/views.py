@@ -41,7 +41,7 @@ def getAllApartments(request, username):
                 'image': image
             }]
 
-    print(all_apartments)
+    # print(all_apartments)
     return Response(all_apartments)
 
 
@@ -60,7 +60,7 @@ def getApartment(request, pk):
 
     images = [img.get_image() for img in images]
 
-    print(images)
+    # print(images)
 
     to_frontend['apartment_pk'] = apartment.pk
     to_frontend['apartment_floor_number'] = apartment.floor_number
@@ -86,12 +86,8 @@ def getApartment(request, pk):
         to_frontend['tenant_departure_date'] = apartment.tenant.departure_date
         to_frontend['tenant_image'] = apartment.tenant.get_image()
 
-    print(apartment.tenant)
     to_frontend['apartment_rent'] = apartment.rent
-    print(apartment.rent)
 
-    print("here-------")
-    print(to_frontend)
     to_frontend['none'] = False
 
     return Response(to_frontend)
@@ -99,37 +95,7 @@ def getApartment(request, pk):
 
 @api_view(['POST'])
 def createapartment(request):
-    # print("data ", request.data)
-    # user = request.data['user']
-    # building = request.data['building']
-    #
-    # try:
-    #     User(username=user['username'], password=user['password'], email=user['email']).save()
-    # except:
-    #     print('Error: User object could not be created 1')
-    #     return Response(None)
-    #
-    # try:
-    #     user = User.objects.get(username=user['username'])
-    # except User.DoesNotExist:
-    #     print('Error: User object could not be created 2')
-    #     return Response(None)
-    #
-    # building['user'] = user.id
-    # building = BuildingSerializer(data=building)
-    #
-    # if building.is_valid():
-    #     try:
-    #         building.save()
-    #     except:
-    #         print('Error: Building object could not be created 1')
-    #         user.delete()
-    #         return Response(None)
-    #
-    #     return Response(building.data)
-    #
-    # print('Error: Building object could not be created 2')
-    # user.delete()
+
     return Response(None)
 
 # --------------------------------------------------- Building admin end --------------------------------------->>>
