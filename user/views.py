@@ -153,16 +153,26 @@ def createBuilding(request):
 @api_view(['GET'])
 def getAllOwners(request, username):
     owners = Owner.objects.all().filter(apartment__building__user__username=username)
-    serializer = OwnerSerializer(owners, many=True) 
-    data = [dict(each) for each in serializer.data]
+    # serializer = OwnerSerializer(owners, many=True)
+    data = []
 
-      
-    for each in data:
-        print(each)
-        each['owner_name'] = User.objects.get(pk = each['user']).username
-        each['floor_no'] = Apartment.objects.get(building = Building.objects.get(user__username = username), owner = each['id']).floor_number
-        each['unit_no'] = Apartment.objects.get(building = Building.objects.get(user__username = username), owner = each['id']).apartment_number
-
+    for owner in owners:
+        print(owner)
+        apartment = Apartment.objects.filter(owner=owner)
+        print('apartment', apartment.first())
+        if apartment:
+            floor_no = apartment.first().floor_number
+            unit_no = apartment.first().apartment_number
+        else:
+            floor_no = None
+            unit_no = None
+        data.append({
+            'owner_name': owner.user.first_name + ' ' + owner.user.last_name,
+            'phone_number': owner.phone_number,
+            'floor_no': floor_no,
+            'unit_no': unit_no,
+            'image': owner.get_image(),
+        })
 
     to_frontend = {
         "data": data,
@@ -194,7 +204,6 @@ def createOwner(request):
     print(username)
 
     # create user
-
 
     user = None
     owner = None
@@ -234,7 +243,6 @@ def createOwner(request):
 
         owner = Owner.objects.get(user=user)
 
-
     print(user, owner)
     # get apartment
     apartment = None
@@ -244,15 +252,13 @@ def createOwner(request):
         print('Error: apartment not found 4')
         return Response(None)
 
-    if(apartment and user and owner):
+    if (apartment and user and owner):
         apartment.owner = owner
         apartment.save()
-
 
     print(apartment)
 
     return Response(None)
-
 
 
 @api_view(['GET'])
@@ -264,22 +270,33 @@ def getAllApartmentsOfOwner(request, username):
     return Response(apartments)
 
 
-
 # --------------------------------------------------- Owner end ------------------------------------------------>>>
 # --------------------------------------------------- Tenant start --------------------------------------------->>>
 
 @api_view(['GET'])
 def getAllTenants(request, username):
+
     tenants = Tenant.objects.all().filter(apartment__building__user__username=username)
-    serializer = TenantSerializer(tenants, many=True) 
-    data = [dict(each) for each in serializer.data]
 
-      
-    for each in data:
-        each['tenant_name'] = User.objects.get(pk = each['user']).username
-        each['floor_no'] = Apartment.objects.get(building = Building.objects.get(user__username = username), owner = each['id']).floor_number
-        each['unit_no'] = Apartment.objects.get(building = Building.objects.get(user__username = username), owner = each['id']).apartment_number
+    data = []
 
+    for tenant in tenants:
+        print(tenant)
+        apartment = Apartment.objects.filter(tenant=tenant)
+        print('apartment', apartment.first())
+        if apartment:
+            floor_no = apartment.first().floor_number
+            unit_no = apartment.first().apartment_number
+        else:
+            floor_no = None
+            unit_no = None
+        data.append({
+            'tenant_name': tenant.user.first_name + ' ' + tenant.user.last_name,
+            'phone_number': tenant.phone_number,
+            'floor_no': floor_no,
+            'unit_no': unit_no,
+            'image': tenant.get_image(),
+        })
 
     to_frontend = {
         "data": data,
