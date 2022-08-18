@@ -153,19 +153,24 @@ def createBuilding(request):
 @api_view(['GET'])
 def getAllOwners(request, username):
     owners = Owner.objects.all().filter(apartment__building__user__username=username)
+    serializer = OwnerSerializer(owners, many=True) 
+    data = [dict(each) for each in serializer.data]
 
-    data = OwnerSerializer(owners, many=True).data
-
-    owners = []
-    temp = []
-
-    for own in data:
-        if temp.count(own['user']) == 0:
-            temp.append(own['user'])
-            owners.append(own)
+      
+    for each in data:
+        print(each)
+        each['owner_name'] = User.objects.get(pk = each['user']).username
+        each['floor_no'] = Apartment.objects.get(building = Building.objects.get(user__username = username), owner = each['id']).floor_number
+        each['unit_no'] = Apartment.objects.get(building = Building.objects.get(user__username = username), owner = each['id']).apartment_number
 
 
-    return Response(owners)
+    to_frontend = {
+        "data": data,
+        "msg": "datafetched",
+        "success": True,
+    }
+
+    return Response(to_frontend)
 
 
 @api_view(['GET'])
@@ -266,8 +271,23 @@ def getAllApartmentsOfOwner(request, username):
 @api_view(['GET'])
 def getAllTenants(request, username):
     tenants = Tenant.objects.all().filter(apartment__building__user__username=username)
-    serializer = TenantSerializer(tenants, many=True)
-    return Response(serializer.data)
+    serializer = TenantSerializer(tenants, many=True) 
+    data = [dict(each) for each in serializer.data]
+
+      
+    for each in data:
+        each['tenant_name'] = User.objects.get(pk = each['user']).username
+        each['floor_no'] = Apartment.objects.get(building = Building.objects.get(user__username = username), owner = each['id']).floor_number
+        each['unit_no'] = Apartment.objects.get(building = Building.objects.get(user__username = username), owner = each['id']).apartment_number
+
+
+    to_frontend = {
+        "data": data,
+        "msg": "datafetched",
+        "success": True,
+    }
+
+    return Response(to_frontend)
 
 
 @api_view(['GET'])

@@ -20,7 +20,7 @@ class Apartment(models.Model):
     service_charge_due_amount = models.IntegerField(default=0, blank=True, null=True)
 
     def __str__(self):
-        return str(self.building) + '_' + self.apartment_number
+        return str(self.building) + '_' + str(self.floor_number) + self.apartment_number
 
     class Meta:
         db_table = 'apartment'
