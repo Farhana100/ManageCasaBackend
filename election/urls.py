@@ -13,4 +13,5 @@ urlpatterns = [
     path('deleteElection/<int:pk>', deleteElection, name='deleteElection',),
     path('getElectionVote/<int:pk>', getElectionVote, name='getElectionVote'),
     path('isNominee/<int:pk>', isNominee, name='isNominee'),
+    path('earlyStop/<int:pk>', earlyStop, name='earlyStop'),
 ]
