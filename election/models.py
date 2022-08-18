@@ -51,3 +51,19 @@ class CommitteeElectionVote(models.Model):
 
     class Meta:
         db_table = 'election_vote'
+        
+        
+class CommitteeMember(models.Model):
+    building = models.ForeignKey(Building, null=False, on_delete=models.CASCADE)
+    committee_election = models.ForeignKey(CommitteeElection, null=False, on_delete=models.CASCADE)
+    owner = models.ForeignKey(Owner, null=True, on_delete=models.SET_NULL)
+    position = models.CharField(max_length=30, null=False)
+    status = models.CharField(max_length=30, null=False)
+    start_date = models.DateTimeField(auto_now_add=True)
+    end_date = models.DateTimeField(auto_now_add=True)
+    
+    def __int__(self):
+        return self.committee_election
+
+    class Meta:
+        db_table = 'committee_member'

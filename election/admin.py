@@ -10,6 +10,10 @@ class NomineeAdmin(admin.ModelAdmin):
 class CommitteeElectionVoteAdmin(admin.ModelAdmin):
     list_display = ('committee_election', 'owner', 'nominee')
     
+class CommitteeMemberAdmin(admin.ModelAdmin):
+    list_display = ('building', 'committee_election', 'owner', 'position','status', 'start_date', 'end_date')
+    
 admin.site.register(CommitteeElection, CommitteeElectionAdmin)
 admin.site.register(Nominee, NomineeAdmin)
 admin.site.register(CommitteeElectionVote, CommitteeElectionVoteAdmin)
+admin.site.register(CommitteeMember, CommitteeMemberAdmin)
