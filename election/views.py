@@ -1,3 +1,4 @@
+from turtle import position
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from .serializer import *
@@ -13,33 +14,35 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 
 @api_view(['POST'])
-def createElection(request):
+def createElection(request, username):
     position = request.data['positionData']
     nom_start = request.data['nomstartData']
     nom_end = request.data['nomendData']
     vote_start = request.data['votestartData']
     vote_end = request.data['voteendData']
+    auto_approve = request.data['autoapprove']
 
-    building = Building.objects.get(user__username="building1")
+    building = Building.objects.get(user__username=username)
 
     to_frontend = {
         "success": False,
         "msg": "",
     }
+    
+    if(auto_approve == "true"):
+        auto_approve = True
+    else:
+        auto_approve = False
 
     #create election
-    try:
-        CommitteeElection(building=building,
-                          phase="pending",
-                          position=position,
-                          nomination_start_time=nom_start,
-                          nomination_end_time=nom_end,
-                          voting_start_time=vote_start,
-                          voting_end_time=vote_end).save()
-    except:
-        print('Error: User object could not be created 1')
-        to_frontend['msg'] = "election not created!"
-        return Response(to_frontend)
+    CommitteeElection(building=building,
+                        phase="pending",
+                        position=position,
+                        nomination_start_time=nom_start,
+                        nomination_end_time=nom_end,
+                        voting_start_time=vote_start,
+                        voting_end_time=vote_end,
+                        autoapprove=auto_approve).save()
 
     to_frontend['success'] = True
     to_frontend['msg'] = "election created successfully"
@@ -50,7 +53,9 @@ def createElection(request):
 def getAllElections(request, username):
     utc=pytz.UTC
     current_time = timezone.now()
-    elections = CommitteeElection.objects.all()
+    building_id = Building.objects.get(user__username = username)
+    elections = CommitteeElection.objects.filter(building=building_id)
+    print(elections)
     
     for each in elections:
         #voting end time < current time
@@ -65,16 +70,16 @@ def getAllElections(request, username):
                     nominee_id = nom.owner
             
             CommitteeElection.objects.filter(pk = each.id).update(elected_member = nominee_id)
-            # CommitteeMember(owner=each.elected_member, position=each.position, committee_election=each, status="active", start_date=timezone.now()).save()
-            # CommitteeMember.objects.filter(building=username, position=each.position).update(status = "inactive")    
-            # obj = CommitteeMember()
-            # obj.committee_election = each.id
-            # obj.owner = each.elected_member
-            # obj.position = each.position
-            # obj.status = "active"
-            # obj.start_date = timezone.now()
-            # obj.save()
-            
+                
+            CommitteeMember.objects.filter(building=building_id, position=each.position).update(status = "inactive")
+            obj = CommitteeMember()
+            obj.building = building_id
+            obj.committee_election = each
+            obj.owner = nominee_id
+            obj.position = each.position
+            obj.status = "active"
+            obj.start_date = timezone.now()
+            obj.save()
             
             
         #voting start time < current time
@@ -105,6 +110,32 @@ def getElection(request, pk):
     serializer = CommitteeElectionSerializer(election, many=False)
     return Response(serializer.data)
 
+
+@api_view(['POST'])
+def updateAutoApprove(request, pk):
+    print(request.data['autoapprove'])
+    CommitteeElection.objects.filter(id=pk).update(autoapprove=request.data['autoapprove'])
+    
+    Nominee.objects.filter(committee_election=pk, approval_status = "Pending").update(approval_status = "Approved")
+    
+    to_frontend = {
+        "success": True,
+        "msg": " auto approval updated"
+    }
+    return Response(to_frontend)
+
+@api_view(['GET'])
+def getAutoApprove(request, pk):
+    autoapprove = CommitteeElection.objects.get(id=pk).autoapprove
+    to_frontend = {
+        'success': True,
+        'msg': "fetched",
+        'autoapprove': autoapprove
+    }
+    
+    return Response(to_frontend)
+    
+    
 @api_view(['POST'])
 def deleteElection(request, pk):
     to_frontend = {
@@ -133,7 +164,10 @@ def createNominee(request):
     ownerID = Owner.objects.get(user__username=name)
     election = CommitteeElection(id=electionID)
     
-    # candidate_no = CommitteeElection.objects.get(id=electionID).no_of_candidates
+    autoapprove = CommitteeElection.objects.get(id=electionID).autoapprove
+    if(autoapprove == True):
+        approval_status = "Approved"
+    print(approval_status)
 
     to_frontend = {
         "success": False,
@@ -141,16 +175,10 @@ def createNominee(request):
     }
 
     #create nominee
-    try:
-        Nominee(owner=ownerID,
-                committee_election=election,
-                approval_status=approval_status).save()
-        
-        # CommitteeElection.objects.filter(id=electionID).update(no_of_candidates = candidate_no + 1)
-    except:
-        print('Error: Nominee object could not be created 1')
-        to_frontend['msg'] = "nominee not created!"
-        return Response(to_frontend)
+    Nominee(owner=ownerID,
+            committee_election=election,
+            approval_status=approval_status).save()
+    
 
     to_frontend['success'] = True
     to_frontend['msg'] = "nominee created successfully"
@@ -168,8 +196,6 @@ def getNominees(request, key):
     for each in data:
         each['owner_name'] = Owner.objects.get(
             pk=each.get('owner')).user.username
-
-    # print(data)
 
     return Response(data)
 
@@ -226,10 +252,6 @@ def castVote(request):
         "success": False,
         "msg": "",
     }
-
-    print(voterID)
-    print(nomineeID)
-    print(election)
 
     # add committe election vote
     try:
@@ -288,7 +310,6 @@ def getElectionVote(request, pk):
     return Response(to_frontend)
 
 
-
 @api_view(['POST'])
 def isNominee(request, pk):
     name = request.data['nominee_name']
@@ -320,5 +341,99 @@ def earlyStop(request, pk):
         "success": True,
     }
     
+    return Response(to_frontend)
+
+
+@api_view(['POST'])
+def createCommitteePosition(request, username):
+    position = request.data['position']
+    building_id = Building.objects.get(user__username = username)
+    positions = CommitteePosition.objects.filter(building = building_id)
+    
+    to_frontend = {
+        "success": False,
+        "msg": "",
+    }
+    
+    for each in positions:
+        if(each.position == position):
+            to_frontend['msg'] = "Position Already Exists"
+            return Response(to_frontend)
+        
+    obj = CommitteePosition()
+    obj.building = building_id
+    obj.position = position
+    obj.save()
+    
+    to_frontend = {
+        "success": True,
+        "msg": position + "Position Created Successfully",
+    }
+    return Response(to_frontend)
+    
+@api_view(['GET'])
+def getPositions(request, username):
+    building_id = Building.objects.get(user__username = username)
+    positions = CommitteePosition.objects.filter(building = building_id)
+     
+    pos_data = []
+    for pos in positions:
+        pos_data.append({
+            "positions": pos.position
+        })
+        
+        
+    to_frontend = {
+        "success": True,
+        "msg": "position fetched",
+        "positions": pos_data, 
+    }
+    
+    return Response(to_frontend)
+
+@api_view(['GET'])
+def getCommitteeMembers(request, username):
+    building_id = Building.objects.get(user__username=username)
+    committeemembers = CommitteeMember.objects.filter(building=building_id, status="active")
+    committeeposition = CommitteePosition.objects.filter(building=building_id)
+    
+    data = []
+    
+    for member in committeemembers:
+        apartment = Apartment.objects.filter(owner=member.owner)
+        print('apartment', apartment.first())
+        if apartment:
+            floor_no = apartment.first().floor_number
+            unit_no = apartment.first().apartment_number
+        else:
+            floor_no = None
+            unit_no = None
+        data.append({
+            'position': member.position,
+            'owner_name': member.owner.user.username,
+            'start_date': member.start_date,
+            'floor_no': floor_no,
+            'unit_no': unit_no,
+            'image': member.owner.get_image(),
+        })
+        
+    for position in committeeposition:
+        existPosition = False
+        for everydata in data:
+            if(position.position == everydata['position']):
+                existPosition = True
+                break
+        if(existPosition == False):
+            data.append({
+                'position': position.position,
+                'owner_name': "",
+            })
+    print(data)
+    to_frontend = {
+        "data": data,
+        "msg": "datafetched",
+        "success": True,
+    }
+
     return Response(to_frontend)
     

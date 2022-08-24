@@ -18,6 +18,7 @@ class CommitteeElection(models.Model):
     voting_end_time = models.DateTimeField(null=True, blank=True)
     vote_count = models.IntegerField(default=0)
     no_of_candidates = models.IntegerField(default=0)
+    autoapprove = models.BooleanField(default=False)
     
     
     def __int__(self):
@@ -51,6 +52,16 @@ class CommitteeElectionVote(models.Model):
 
     class Meta:
         db_table = 'election_vote'
+        
+class CommitteePosition(models.Model):
+    building = models.ForeignKey(Building, null=False, on_delete=models.CASCADE)
+    position = models.CharField(max_length=30, null=False)
+    
+    def __int__(self):
+        return self.position
+
+    class Meta:
+        db_table = 'committee_position'
         
         
 class CommitteeMember(models.Model):
