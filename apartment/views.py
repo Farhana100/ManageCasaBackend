@@ -1,3 +1,6 @@
+from tempfile import NamedTemporaryFile
+from urllib.request import urlopen
+
 from django.contrib.auth import login, logout, authenticate
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from rest_framework.permissions import IsAuthenticated
@@ -100,9 +103,19 @@ def createApartment(request):
     apartment_number = request.data['apartment_number']
     rent = request.data['rent']
     service_charge_due_amount = request.data['service_charge_due_amount']
+    selectedFiles = request.data['selectedFiles']
 
     print("test print --------------------------------")
     print(request.data)
+    print("selected image files: ", selectedFiles[0][5:])
+
+    if selectedFiles:
+        print(type(selectedFiles[0]))
+    # if selectedFiles:
+    #     img_temp = NamedTemporaryFile(delete=True)
+    #     img_temp.write(urlopen(selectedFiles[0]).read())
+    #     img_temp.flush()
+    #     print("file ", img_temp)
 
     # to_frontend = {
     #     'msg': 'test',
@@ -128,6 +141,28 @@ def createApartment(request):
     except:
         to_frontend = {
             'msg': 'Apartment could not be created',
+            'error': True,
+        }
+        return Response(to_frontend)
+
+    print("no error upto this 1")
+    try:
+        apartment = Apartment.objects.filter(building=building,
+                                             floor_number=floor_number,
+                                             apartment_number=apartment_number)[0]
+        print("debug ", apartment)
+    except:
+        to_frontend = {
+            'msg': "what error??!!",
+            'error': True,
+        }
+        return Response(to_frontend)
+
+    try:
+        ApartmentImage(apartment=apartment, image=selectedFiles[0][5:]).save()
+    except:
+        to_frontend = {
+            'msg': "no image error",
             'error': True,
         }
         return Response(to_frontend)
