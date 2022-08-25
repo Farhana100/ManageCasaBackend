@@ -84,7 +84,6 @@ def getAllElections(request, username):
             
         #voting start time < current time
         elif each.voting_start_time <= current_time and (each.phase == "pending" or each.phase == "nomination"):
-            print("dhukechi!")
             CommitteeElection.objects.filter(pk = each.id).update(phase = "voting")
             
         #nomination end time < current time
@@ -101,11 +100,7 @@ def getAllElections(request, username):
 
 @api_view(['GET'])
 def getElection(request, pk):
-    try:
-        election = CommitteeElection.objects.get(id=pk)
-        
-    except CommitteeElection.DoesNotExist:
-        return Response(None)
+    election = CommitteeElection.objects.get(id=pk)
 
     serializer = CommitteeElectionSerializer(election, many=False)
     return Response(serializer.data)
@@ -196,6 +191,7 @@ def getNominees(request, key):
     for each in data:
         each['owner_name'] = Owner.objects.get(
             pk=each.get('owner')).user.username
+        each['image'] = Owner.objects.get(pk = each.get('owner')).get_image()
 
     return Response(data)
 
@@ -231,6 +227,16 @@ def approveNominee(request):
     print("nominee approved")
     return Response(to_frontend)
 
+@api_view(['POST'])
+def updatenomstart(request, pk):
+    nomstart = request.data['nomstart']
+    CommitteeElection.objects.get(id=pk).update(nomination_start_time=nomstart)
+    to_frontend = {
+        'success': True,
+        'msg': "updated",
+    }
+    
+    return Response(to_frontend)
 
 @api_view(['POST'])
 def castVote(request):
@@ -253,25 +259,17 @@ def castVote(request):
         "msg": "",
     }
 
-    # add committe election vote
-    try:
-        obj = CommitteeElectionVote()
-        obj.nominee = nomineeID
-        obj.owner = voterID
-        obj.committee_election = election
-        obj.save()
-        
-        obj_nom = Nominee.objects.filter(owner=nomineeOwner,
-                                committee_election=election)
-        obj_nom.update(vote_count = nom_vote_count+1) 
-        
-        obj_election = CommitteeElection.objects.filter(id=election)
-        obj_election.update(vote_count = election_vote_count+1)
+    obj = CommitteeElectionVote()
+    obj.nominee = nomineeID
+    obj.owner = voterID
+    obj.committee_election = election
+    obj.save()
+    obj_nom = Nominee.objects.filter(owner=nomineeOwner,
+                            committee_election=election)
+    obj_nom.update(vote_count = nom_vote_count+1) 
+    obj_election = CommitteeElection.objects.filter(id=election)
+    obj_election.update(vote_count = election_vote_count+1)
                                
-    except:
-        print('Error: Vote object could not be created 1')
-        to_frontend['msg'] = "vote not casted!"
-        return Response(to_frontend)
 
     to_frontend['success'] = True
     to_frontend['msg'] = "vote casted successfully"
