@@ -36,7 +36,7 @@ def createElection(request, username):
 
     #create election
     CommitteeElection(building=building,
-                        phase="pending",
+                        phase="Pending",
                         position=position,
                         nomination_start_time=nom_start,
                         nomination_end_time=nom_end,
@@ -58,8 +58,8 @@ def getAllElections(request, username):
     
     for each in elections:
         #voting end time < current time
-        if each.voting_end_time <= current_time and each.phase == "voting":
-            CommitteeElection.objects.filter(pk = each.id).update(phase = "ended")
+        if each.voting_end_time <= current_time and each.phase.lower() == "voting":
+            CommitteeElection.objects.filter(pk = each.id).update(phase = "Ended")
             nominees = Nominee.objects.filter(committee_election = each.id)
             vote_max_count = 0;
             nominee_id = ""
@@ -82,15 +82,15 @@ def getAllElections(request, username):
             
             
         #voting start time < current time
-        elif each.voting_start_time <= current_time and (each.phase == "pending" or each.phase == "nomination"):
-            CommitteeElection.objects.filter(pk = each.id).update(phase = "voting")
+        elif each.voting_start_time <= current_time and (each.phase.lower() == "pending" or each.phase.lower() == "nomination"):
+            CommitteeElection.objects.filter(pk = each.id).update(phase = "Voting")
             
         #nomination end time < current time
-        elif each.nomination_end_time <= current_time and each.phase == "nomination":
-            CommitteeElection.objects.filter(pk = each.id).update(phase = "pending")
+        elif each.nomination_end_time <= current_time and each.phase.lower() == "nomination":
+            CommitteeElection.objects.filter(pk = each.id).update(phase = "Pending")
             
         #nomination start time < current time
-        elif each.nomination_start_time <= current_time and each.phase == "pending":
+        elif each.nomination_start_time <= current_time and each.phase.lower() == "pending":
             CommitteeElection.objects.filter(pk = each.id).update(phase = "nomination")
     
     serializer = CommitteeElectionSerializer(elections, many=True)
@@ -333,7 +333,7 @@ def isNominee(request, pk):
 
 @api_view(['POST'])
 def earlyStop(request, pk):
-    CommitteeElection.objects.filter(pk = pk).update(phase = "ended", voting_end_time = timezone.now())
+    CommitteeElection.objects.filter(pk = pk).update(phase = "Ended", voting_end_time = timezone.now())
     to_frontend = {
         "success": True,
     }

@@ -25,7 +25,7 @@ def createPoll(request, username):
 
     obj = Poll()
     obj.building = building
-    obj.phase = "pending"
+    obj.phase = "Pending"
     obj.topic = request.data['topic']
     obj.description = request.data['description']
     obj.start_time = start
@@ -45,8 +45,8 @@ def getAllPolls(request, username):
     
     for each in polls:
         # poll ended
-        if each.end_time < current_time and each.phase == "voting":
-            Poll.objects.filter(pk = each.id).update(phase = "ended")
+        if each.end_time < current_time and each.phase.lower() == "voting":
+            Poll.objects.filter(pk = each.id).update(phase = "Ended")
             options = Option.objects.filter(poll = each.id)
             vote_max_count = 0;
             option_name = ""
@@ -58,8 +58,8 @@ def getAllPolls(request, username):
             Poll.objects.filter(pk = each.id).update(selected_option = option_name)
         
         
-        elif(each.start_time < current_time and each.phase == "pending"):
-            Poll.objects.filter(pk = each.id).update(phase = "voting")
+        elif(each.start_time < current_time and each.phase.lower() == "pending"):
+            Poll.objects.filter(pk = each.id).update(phase = "Voting")
             
             
     serializer = PollSerializer(polls, many=True)
@@ -131,7 +131,7 @@ def deletePoll(request, pk):
 
 @api_view(['POST'])
 def earlyStopPoll(request, pk):
-    Poll.objects.filter(id = pk).update(phase = "ended", end_time = timezone.now())
+    Poll.objects.filter(id = pk).update(phase = "Ended", end_time = timezone.now())
     to_frontend = {
         "success": True,
     }
