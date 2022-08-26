@@ -11,7 +11,41 @@ import pytz
 from django.utils import timezone
 
 # Create your views here.
+@api_view(['POST'])
+def createPoll(request, username):
+    start = request.data['startData']
+    end = request.data['endData']
 
+    building = Building.objects.get(user__username=username)
+
+    to_frontend = {
+        "success": False,
+        "msg": "",
+    }
+
+    #create election
+    # Poll(building=building,
+    #                     phase="pending",
+    #                     topic=request.data['topic'],
+    #                     description=request.data['description'],
+    #                     start_time=start,
+    #                     end_time=end,
+    # )
+    obj = Poll()
+    obj.building = building
+    obj.phase = "pending"
+    obj.topic = request.data['topic']
+    obj.description = request.data['description']
+    obj.start_time = start
+    obj.end_time = end
+    obj.save()
+
+    to_frontend['success'] = True
+    to_frontend['msg'] = "poll created successfully"
+    return Response(to_frontend)
+    
+    
+    
 @api_view(['GET'])
 def getAllPolls(request, username):
     building_id = Building.objects.get(user__username = username)
@@ -26,6 +60,48 @@ def getPoll(request, pk):
     
     serializer = PollSerializer(poll, many=False)
     return Response(serializer.data)
+
+
+@api_view(['GET'])
+def getOptions(request, pk):
+    options = Option.objects.filter(poll = pk)
+    serializer = OptionSerializer(options, many=True)
+
+    data = [dict(each) for each in serializer.data]
+
+    return Response(data)
+
+@api_view(['POST'])
+def getPollVote(request, pk):
+    name = request.data['votername']
+    
+    ownerID = Owner.objects.get(user__username = name)
+    to_frontend = {
+        "success": False,
+        "msg": "",
+        "vote_existed": False,
+        "option": "",
+    }
+    
+    if PollVote.objects.filter(poll = pk, owner = ownerID).exists():
+        option = PollVote.objects.get(poll = pk, owner = ownerID).option_name
+        option_name = option.option_name
+        owner = PollVote.objects.get(poll = pk, owner = ownerID).owner
+        owner_name = owner.user.username
+        print(type(option_name))
+        print(owner_name)
+        to_frontend['success'] = True
+        to_frontend['msg'] = "vote existed"
+        to_frontend['vote_existed'] = True
+        to_frontend['option'] = option_name
+        print("vote existed")
+        return Response(to_frontend)
+    
+    to_frontend['msg'] = "vote not existed"
+    to_frontend['success'] = True
+    print("vote not existed")
+    return Response(to_frontend)
+
 
 @api_view(['POST'])
 def deletePoll(request, pk):
@@ -52,24 +128,14 @@ def earlyStopPoll(request, pk):
     return Response(to_frontend)
 
 
-@api_view(['GET'])
-def getOptions(request, pk):
-    options = Option.objects.filter(poll = pk)
-    serializer = OptionSerializer(options, many=True)
-
-    data = [dict(each) for each in serializer.data]
-
-    return Response(data)
-
 @api_view(['POST'])
-def castVotePoll(request):
-    option_name = request.data['option_name']
-    pollID = request.data['pollID']
+def castVotePoll(request, pk):
+    option_name = request.data['option']
     voter = request.data['voter']
 
-    optionID = Option.objects.get(poll = pollID, option_name = option_name)
+    optionID = Option.objects.get(poll = pk, option_name = option_name)
     voterID = Owner.objects.get(user__username=voter)
-    poll = Poll.objects.get(id=pollID)
+    poll = Poll.objects.get(id=pk)
     
     #increase vote count
     option_vote_count = Option.objects.get(option_name = option_name,
@@ -86,9 +152,9 @@ def castVotePoll(request):
     obj.owner = voterID
     obj.poll = poll
     obj.save()
-    obj_nom = Option.objects.filter(option_name = option_name,
+    obj_option = Option.objects.filter(option_name = option_name,
                             poll=poll)
-    obj_nom.update(vote_count = option_vote_count+1) 
+    obj_option.update(vote_count = option_vote_count+1) 
     obj_election = Poll.objects.filter(id=poll)
     obj_election.update(vote_count = poll_vote_count+1)
                                
@@ -100,33 +166,3 @@ def castVotePoll(request):
 
 
 
-@api_view(['POST'])
-def getPollVote(request, pk):
-    name = request.data['votername']
-    
-    ownerID = Owner.objects.get(user__username = name)
-    to_frontend = {
-        "success": False,
-        "msg": "",
-        "vote_existed": False,
-        "nominee": "",
-    }
-    
-    if PollVote.objects.filter(poll = pk, owner = ownerID).exists():
-        option = PollVote.objects.get(poll = pk, owner = ownerID).option_name
-        option_name = option.option_name
-        owner = PollVote.objects.get(poll = pk, owner = ownerID).owner
-        owner_name = owner.user.username
-        print(type(option_name))
-        print(owner_name)
-        to_frontend['success'] = True
-        to_frontend['msg'] = "vote existed"
-        to_frontend['vote_existed'] = True
-        to_frontend['option'] = option_name
-        print("vote existed")
-        return Response(to_frontend)
-    
-    to_frontend['msg'] = "vote not existed"
-    to_frontend['success'] = True
-    print("vote not existed")
-    return Response(to_frontend)

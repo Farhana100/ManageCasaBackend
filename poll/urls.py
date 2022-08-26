@@ -9,5 +9,6 @@ urlpatterns = [
     path('getPollVote/<int:pk>', getPollVote, name = 'getPollVote'),
     path('deletePoll/<int:pk>', deletePoll, name = 'deletePoll'),
     path('earlyStopPoll/<int:pk>', earlyStopPoll, name = 'earlyStopPoll'),
-    path('castVotePoll', castVotePoll, name = 'castVotePoll'),
+    path('castVotePoll/<int:pk>', castVotePoll, name = 'castVotePoll'),
+    path('createPoll/<str:username>', createPoll, name = 'createPoll'),
 ]
