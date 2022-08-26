@@ -197,68 +197,114 @@ def getOwner(request, pk):
 
 @api_view(['POST'])
 def createOwner(request):
+
     print("data ", request.data)
     username = request.data['username']
-    building = request.data['building']
-    apartment_number = request.data['apartment']
-    print(username)
+    lastname = request.data['lastname']
+    firstname = request.data['firstname']
+    apartment_pk = request.data['apartment_pk']
+    password = request.data['password']
+    email = request.data['email']
+    phone_number = request.data['phone_number']
+    bkash_acc_number = request.data['bkash_acc_number']
+    selectedFiles = request.data['selectedFiles']
 
+    # to_frontend = {
+    #     "error": "username",
+    #     "msg": "test",
+    #     "success": False,
+    # }
+    # return Response(to_frontend)
     # create user
 
     user = None
     owner = None
     # get user
 
+    to_frontend = {
+        "error":"",
+        "msg": "",
+        "success": True,
+    }
+
     try:
-        # owner already exists
+        # user already exists
         user = User.objects.get(username=username)
-        try:
-            owner = Owner.objects.get(user=user)
-        except Owner.DoesNotExist:
-            print('Error: User object could not be created 2')
-            return Response(None)
+
+        to_frontend = {
+            "error":"username",
+            "msg": "username already exists",
+            "success": False,
+        }
+        return Response(to_frontend)
 
     except User.DoesNotExist:
 
         # create owner
-        password = request.data['password']
-        email = request.data['email']
-        phone_number = request.data['phone_number']
-        bkash_acc_number = request.data['bkash_acc_number']
-
         # user
         try:
-            User(username=username, password=password, email=email).save()
+            User(username=username, password=password, email=email, last_name=lastname, first_name=firstname).save()
         except:
             print('Error: User object could not be created 1')
-            return Response(None)
+            to_frontend = {
+                "error":"",
+                "msg": "uknown error 1",
+                "success": False,
+            }
+            return Response(to_frontend)
         user = User.objects.get(username=username)
+        # user created by now
 
         # owner
         try:
             Owner(user=user, phone_number=phone_number, bkash_acc_number=bkash_acc_number).save()
         except:
+            # delete created user
+            User(username=username).delete()
             print('Error: Owner object could not be created 3')
-            return Response(None)
+            to_frontend = {
+                "error":"",
+                "msg": "uknown error 2",
+                "success": False,
+            }
+            return Response(to_frontend)
 
         owner = Owner.objects.get(user=user)
+        # user and owner created by now
 
     print(user, owner)
     # get apartment
     apartment = None
     try:
-        apartment = Apartment.objects.get(building__user__username=building, apartment_number=apartment_number)
-    except Apartment.DoesNotExist:
-        print('Error: apartment not found 4')
-        return Response(None)
+        apartment = Apartment.objects.get(id=apartment_pk)
+    except:
+        # delete created user and owner, should cascade and delete owner as well
+        User(username=username).delete()
 
-    if (apartment and user and owner):
+        print('Error: apartment not found 4')
+
+        to_frontend = {
+            "error":"",
+            "msg": "uknown error 3",
+            "success": False,
+        }
+        return Response(to_frontend)
+
+    if apartment and user and owner:
         apartment.owner = owner
         apartment.save()
-
+    else:
+        # delete created user and owner, should cascade and delete owner as well
+        User(username=username).delete()
+        to_frontend = {
+            "error":"",
+            "msg": "uknown error 4",
+            "success": False,
+        }
+        return Response(to_frontend)
     print(apartment)
 
-    return Response(None)
+    return Response(to_frontend)
 
 
 @api_view(['GET'])
@@ -270,12 +316,41 @@ def getAllApartmentsOfOwner(request, username):
     return Response(apartments)
 
 
+@api_view(['POST'])
+def deleteOwner(request):
+    pk = request.data['pk']
+
+    try:
+        owner = Owner.objects.get(id=pk)
+    except Owner.DoesNotExist:
+        #  no owner to remove
+        to_frontend = {
+            "msg": "no owner to remove",
+            "success": False,
+        }
+        return Response(to_frontend)
+
+    try:
+        User(id=owner.user.id).delete()
+    except:
+        to_frontend = {
+            "msg": "smth is wrong here",
+            "success": False,
+        }
+        return Response(to_frontend)
+
+    to_frontend = {
+        "msg": "owner removed",
+        "success": True,
+    }
+    return Response(to_frontend)
+
+
 # --------------------------------------------------- Owner end ------------------------------------------------>>>
 # --------------------------------------------------- Tenant start --------------------------------------------->>>
 
 @api_view(['GET'])
 def getAllTenants(request, username):
-
     tenants = Tenant.objects.all().filter(apartment__building__user__username=username)
 
     data = []
@@ -322,35 +397,141 @@ def getTenant(request, pk):
 @api_view(['POST'])
 def createTenant(request):
     print("data ", request.data)
-    # user = request.data['user']
-    # owner = request.data['owner']
-    #
-    # try:
-    #     User(username=user['username'], password=user['password'], email=user['email']).save()
-    # except:
-    #     print('Error: User object could not be created 1')
-    #     return Response(None)
-    #
-    # try:
-    #     user = User.objects.get(username=user['username'])
-    # except User.DoesNotExist:
-    #     print('Error: User object could not be created 2')
-    #     return Response(None)
-    #
-    # building['user'] = user.id
-    # building = BuildingSerializer(data=building)
-    #
-    # if building.is_valid():
-    #     try:
-    #         building.save()
-    #     except:
-    #         print('Error: Building object could not be created 1')
-    #         user.delete()
-    #         return Response(None)
-    #
-    #     return Response(building.data)
-    #
-    # print('Error: Building object could not be created 2')
-    # user.delete()
-    return Response(None)
+    username = request.data['username']
+    lastname = request.data['lastname']
+    firstname = request.data['firstname']
+    apartment_pk = request.data['apartment_pk']
+    password = request.data['password']
+    email = request.data['email']
+    phone_number = request.data['phone_number']
+    bkash_acc_number = request.data['bkash_acc_number']
+    selectedFiles = request.data['selectedFiles']
+
+    # to_frontend = {
+    #     "error": "username",
+    #     "msg": "test",
+    #     "success": False,
+    # }
+    # return Response(to_frontend)
+    # create user
+
+    user = None
+    tenant = None
+    # get user
+
+    to_frontend = {
+        "error":"",
+        "msg": "",
+        "success": True,
+    }
+
+    try:
+        # user already exists
+        user = User.objects.get(username=username)
+
+        to_frontend = {
+            "error":"username",
+            "msg": "username already exists",
+            "success": False,
+        }
+        return Response(to_frontend)
+
+    except User.DoesNotExist:
+
+        # create tenant
+        # user
+        try:
+            User(username=username, password=password, email=email, last_name=lastname, first_name=firstname).save()
+        except:
+            print('Error: User object could not be created 1')
+            to_frontend = {
+                "error":"",
+                "msg": "uknown error 1",
+                "success": False,
+            }
+            return Response(to_frontend)
+        user = User.objects.get(username=username)
+        # user created by now
+
+        # tenant
+        try:
+            Tenant(user=user, phone_number=phone_number, bkash_acc_number=bkash_acc_number).save()
+        except:
+            # delete created user
+            User(username=username).delete()
+            print('Error: Tenant object could not be created 3')
+            to_frontend = {
+                "error":"",
+                "msg": "uknown error 2",
+                "success": False,
+            }
+            return Response(to_frontend)
+
+        tenant = Tenant.objects.get(user=user)
+        # user and tenant created by now
+
+    print(user, tenant)
+    # get apartment
+    apartment = None
+    try:
+        apartment = Apartment.objects.get(id=apartment_pk)
+    except Apartment.DoesNotExist:
+        # delete created user and tenant, should cascade and delete tenant as well
+        User(username=username).delete()
+
+        print('Error: apartment not found 4')
+
+        to_frontend = {
+            "error":"",
+            "msg": "uknown error 3",
+            "success": False,
+        }
+        return Response(to_frontend)
+
+    if apartment and user and tenant:
+        apartment.tenant = tenant
+        apartment.save()
+    else:
+        # delete created user and tenant, should cascade and delete tenant as well
+        User(username=username).delete()
+        to_frontend = {
+            "error":"",
+            "msg": "uknown error 4",
+            "success": False,
+        }
+        return Response(to_frontend)
+    print(apartment)
+
+    return Response(to_frontend)
+
+
+@api_view(['POST'])
+def deleteTenant(request):
+    pk = request.data['pk']
+
+    try:
+        tenant = Tenant.objects.get(id=pk)
+    except Tenant.DoesNotExist:
+        #  no tenant to remove
+        to_frontend = {
+            "msg": "no tenant to remove",
+            "success": False,
+        }
+        return Response(to_frontend)
+
+    try:
+        User(id=tenant.user.id).delete()
+    except:
+        to_frontend = {
+            "msg": "smth is wrong here",
+            "success": False,
+        }
+        return Response(to_frontend)
+
+    to_frontend = {
+        "msg": "tenant removed",
+        "success": True,
+    }
+    return Response(to_frontend)
+
 # --------------------------------------------------- Tenant end ----------------------------------------------->>>
