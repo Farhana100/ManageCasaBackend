@@ -51,7 +51,6 @@ def createElection(request, username):
 
 @api_view(['GET'])
 def getAllElections(request, username):
-    utc=pytz.UTC
     current_time = timezone.now()
     building_id = Building.objects.get(user__username = username)
     elections = CommitteeElection.objects.filter(building=building_id)

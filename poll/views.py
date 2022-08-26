@@ -23,14 +23,6 @@ def createPoll(request, username):
         "msg": "",
     }
 
-    #create election
-    # Poll(building=building,
-    #                     phase="pending",
-    #                     topic=request.data['topic'],
-    #                     description=request.data['description'],
-    #                     start_time=start,
-    #                     end_time=end,
-    # )
     obj = Poll()
     obj.building = building
     obj.phase = "pending"
@@ -45,12 +37,31 @@ def createPoll(request, username):
     return Response(to_frontend)
     
     
-    
 @api_view(['GET'])
 def getAllPolls(request, username):
+    current_time = timezone.now()
     building_id = Building.objects.get(user__username = username)
     polls = Poll.objects.filter(building=building_id)
     
+    for each in polls:
+        # poll ended
+        if each.end_time < current_time and each.phase == "voting":
+            Poll.objects.filter(pk = each.id).update(phase = "ended")
+            options = Option.objects.filter(poll = each.id)
+            vote_max_count = 0;
+            option_name = ""
+            for opt in options:
+                if opt.vote_count > vote_max_count:
+                    vote_max_count = opt.vote_count
+                    option_name = opt.option_name
+                    
+            Poll.objects.filter(pk = each.id).update(selected_option = option_name)
+        
+        
+        elif(each.start_time < current_time and each.phase == "pending"):
+            Poll.objects.filter(pk = each.id).update(phase = "voting")
+            
+            
     serializer = PollSerializer(polls, many=True)
     return Response(serializer.data)
 
