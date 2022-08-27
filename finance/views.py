@@ -37,6 +37,21 @@ def getFundInfo(request, username):
     return Response(to_frontend)    
 
 
+@api_view(['GET'])
+def getExpenseInfo(request, username):
+    building_id = Building.objects.get(user__username = username)
+    
+    funds = Expense.objects.filter(building=building_id)
+    print(funds)
+    
+    serializer = ExpenseSerializer(funds, many=True)
+    data = [dict(each) for each in serializer.data]
+    to_frontend = {
+        'expenses': data,
+    }
+        
+    return Response(to_frontend)
+
 @api_view(['POST'])
 def updateCharge(request, username):
     Building.objects.filter(user__username = username).update(service_charge_amount = request.data['service_charge'])
