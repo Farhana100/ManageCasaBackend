@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     'apartment',
     'election',
     'poll',
+    'serviceProvider',
 ]
 
 MIDDLEWARE = [

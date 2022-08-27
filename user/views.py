@@ -351,8 +351,17 @@ def deleteOwner(request):
 
 @api_view(['GET'])
 def getAllTenants(request, username):
-    tenants = Tenant.objects.all().filter(apartment__building__user__username=username)
+    try:
+        tenants = Tenant.objects.all().filter(apartment__building__user__username=username)
+    except:
 
+        to_frontend = {
+            "data": [],
+            "msg": "datafetched",
+            "success": True,
+        }
+
+        return Response(to_frontend)
     data = []
 
     for tenant in tenants:
