@@ -228,6 +228,7 @@ def approveNominee(request):
 
 @api_view(['POST'])
 def updatenomstart(request, pk):
+    print("dhukechi")
     nomstart = request.data['nomstart']
     CommitteeElection.objects.get(id=pk).update(nomination_start_time=nomstart)
     to_frontend = {
