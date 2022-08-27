@@ -1,3 +1,6 @@
+from tempfile import NamedTemporaryFile
+from urllib.request import urlopen
+
 from django.contrib.auth import login, logout, authenticate
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from rest_framework.permissions import IsAuthenticated
@@ -11,7 +14,7 @@ from .models import *
 # --------------------------------------------------- Building admin start --------------------------------------->>>
 @api_view(['GET'])
 def getAllApartments(request, username):
-    apartments = Apartment.objects.all().filter(building__user__username=username)
+    apartments = Apartment.objects.all().filter(building__user__username=username).order_by('floor_number', 'apartment_number')
 
     all_apartments = {}
 
@@ -42,6 +45,54 @@ def getAllApartments(request, username):
             }]
 
     # print(all_apartments)
+    return Response(all_apartments)
+
+
+@api_view(['GET'])
+def getAllApartmentsWithoutOwners(request, username):
+    apartments = Apartment.objects.all().filter(building__user__username=username).order_by('floor_number',
+                                                                                            'apartment_number')
+
+    all_apartments = {}
+
+    for apartment in apartments:
+        if apartment.owner:
+            continue
+        all_apartments[
+            "Floor no.: " + str(apartment.floor_number) + ', Apartment no.: ' + apartment.apartment_number] = {
+            'id': apartment.id,
+            'floor_number': apartment.floor_number,
+            'apartment_number': apartment.apartment_number,
+            'owner': str(apartment.owner),
+            'tenant': str(apartment.tenant),
+            'rent': apartment.rent,
+        }
+
+    print(all_apartments)
+    return Response(all_apartments)
+
+
+@api_view(['GET'])
+def getAllApartmentsWithoutTenants(request, username):
+    apartments = Apartment.objects.all().filter(building__user__username=username).order_by('floor_number',
+                                                                                            'apartment_number')
+
+    all_apartments = {}
+
+    for apartment in apartments:
+        if apartment.tenant:
+            continue
+        all_apartments[
+            "Floor no.: " + str(apartment.floor_number) + ', Apartment no.: ' + apartment.apartment_number] = {
+            'id': apartment.id,
+            'floor_number': apartment.floor_number,
+            'apartment_number': apartment.apartment_number,
+            'owner': str(apartment.owner),
+            'tenant': str(apartment.tenant),
+            'rent': apartment.rent,
+        }
+
+    print(all_apartments)
     return Response(all_apartments)
 
 
@@ -87,6 +138,7 @@ def getApartment(request, pk):
         to_frontend['tenant_image'] = apartment.tenant.get_image()
 
     to_frontend['apartment_rent'] = apartment.rent
+    to_frontend['service_charge_due_amount'] = apartment.service_charge_due_amount
 
     to_frontend['none'] = False
 
@@ -100,9 +152,19 @@ def createApartment(request):
     apartment_number = request.data['apartment_number']
     rent = request.data['rent']
     service_charge_due_amount = request.data['service_charge_due_amount']
+    selectedFiles = request.data['selectedFiles']
 
     print("test print --------------------------------")
     print(request.data)
+
+    if selectedFiles:
+        print("selected image files: ", selectedFiles[0][5:])
+        print(type(selectedFiles[0]))
+    # if selectedFiles:
+    #     img_temp = NamedTemporaryFile(delete=True)
+    #     img_temp.write(urlopen(selectedFiles[0]).read())
+    #     img_temp.flush()
+    #     print("file ", img_temp)
 
     # to_frontend = {
     #     'msg': 'test',
@@ -132,10 +194,139 @@ def createApartment(request):
         }
         return Response(to_frontend)
 
+    print("no error upto this 1")
+    try:
+        apartment = Apartment.objects.filter(building=building,
+                                             floor_number=floor_number,
+                                             apartment_number=apartment_number)[0]
+        print("debug ", apartment)
+    except:
+        to_frontend = {
+            'msg': "what error??!!",
+            'error': True,
+        }
+        return Response(to_frontend)
+
+    if selectedFiles:
+        try:
+            ApartmentImage(apartment=apartment, image=selectedFiles[0][5:]).save()
+        except:
+            to_frontend = {
+                'msg': "no image error",
+                'error': True,
+            }
+            return Response(to_frontend)
+
     to_frontend = {
         'msg': 'Apartment created successfully',
         'error': False,
     }
     return Response(to_frontend)
+
+
+@api_view(['POST'])
+def updateApartment(request):
+    print(request.data)
+    # to_frontend = {
+    #     'msg': 'test',
+    #     'error': True,
+    # }
+    # return Response(to_frontend)
+
+    pk = request.data['pk']
+    building = request.data['building']
+    floor_number = request.data['floor_number']
+    apartment_number = request.data['apartment_number']
+    rent = request.data['rent']
+    service_charge_due_amount = request.data['service_charge_due_amount']
+    selectedFiles = request.data['selectedFiles']
+
+    if selectedFiles:
+        print("selected image files: ", selectedFiles[0][5:])
+        print(type(selectedFiles[0]))
+    # if selectedFiles:
+    #     img_temp = NamedTemporaryFile(delete=True)
+    #     img_temp.write(urlopen(selectedFiles[0]).read())
+    #     img_temp.flush()
+    #     print("file ", img_temp)
+
+    # to_frontend = {
+    #     'msg': 'test',
+    #     'error': True,
+    # }
+    # return Response(to_frontend)
+
+    try:
+        building = Building.objects.get(user__username=building)
+    except Building.DoesNotExist:
+        to_frontend = {
+            'msg': 'Building does not exist',
+            'error': True,
+        }
+        return Response(to_frontend)
+
+    apartment = None
+    try:
+        apartment = Apartment.objects.get(id=pk)
+    except:
+        to_frontend = {
+            'msg': 'Apartment does not exist',
+            'error': True,
+        }
+        return Response(to_frontend)
+
+    try:
+        apartment.floor_number = floor_number
+        apartment.apartment_number = apartment_number
+        apartment.rent = rent
+        apartment.service_charge_due_amount = service_charge_due_amount
+
+        apartment.save()
+    except:
+        to_frontend = {
+            'msg': "what error??!!",
+            'error': True,
+        }
+        return Response(to_frontend)
+
+    if selectedFiles:
+        try:
+            ApartmentImage(apartment=apartment, image=selectedFiles[0][5:]).save()
+        except:
+            to_frontend = {
+                'msg': "no image error",
+                'error': True,
+            }
+            return Response(to_frontend)
+
+    to_frontend = {
+        'msg': 'Apartment updated successfully',
+        'error': False,
+    }
+    return Response(to_frontend)
+
+@api_view(['POST'])
+def deleteApartment(request):
+    print(request.data)
+    apartment_pk = request.data['apartment_pk']
+
+    try:
+        apartment = Apartment.objects.get(id=apartment_pk)
+        if apartment.owner:
+            User(id=apartment.owner.user.id).delete()
+        if apartment.tenant:
+            User(id=apartment.tenant.user.id).delete()
+        Apartment(id=apartment_pk).delete()
+        to_frontend = {
+            'msg': 'Apartment deleted',
+            'success': True,
+        }
+        return Response(to_frontend)
+    except:
+        to_frontend = {
+            'msg': 'Apartment could not be deleted',
+            'success': False,
+        }
+        return Response(to_frontend)
 
 # --------------------------------------------------- Building admin end --------------------------------------->>>
