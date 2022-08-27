@@ -15,6 +15,8 @@ from django.utils import timezone
 def createPoll(request, username):
     start = request.data['startData']
     end = request.data['endData']
+    options = request.data['options']
+    print(options)
 
     building = Building.objects.get(user__username=username)
 
@@ -30,7 +32,16 @@ def createPoll(request, username):
     obj.description = request.data['description']
     obj.start_time = start
     obj.end_time = end
+    obj.no_of_options = len(options)
     obj.save()
+    print(obj.pk)
+    
+    #add option
+    for each in options:
+        opt_obj = Option()
+        opt_obj.poll = obj
+        opt_obj.option_name = each
+        opt_obj.save()     
 
     to_frontend['success'] = True
     to_frontend['msg'] = "poll created successfully"
@@ -143,27 +154,49 @@ def earlyStopPoll(request, pk):
 def castVotePoll(request, pk):
     option_name = request.data['option']
     voter = request.data['voter']
+    print(option_name)
+    print(voter)
 
-    optionID = Option.objects.get(poll = pk, option_name = option_name)
+    optionID = Option.objects.get(poll = pk, option_name = option_name['current'])
     voterID = Owner.objects.get(user__username=voter)
     poll = Poll.objects.get(id=pk)
-    
-    #increase vote count
-    option_vote_count = Option.objects.get(option_name = option_name,
-                               poll=poll).vote_count
-    poll_vote_count = Poll.objects.get(id=poll).vote_count
     
     to_frontend = {
         "success": False,
         "msg": "",
     }
+    
+    if PollVote.objects.filter(poll = pk, owner = voterID).exists():
+        alreadyselectedoption = PollVote.objects.get(poll = pk, owner = voterID).option_name
+        PollVote.objects.filter(poll = pk, owner = voterID).update(option_name = optionID)
+        
+        print(alreadyselectedoption.option_name)
+        print(option_name['current'])
+        if alreadyselectedoption.option_name != option_name['current']:
+            print("dhukechi")
+            v_count = Option.objects.get(poll = pk, option_name = alreadyselectedoption.option_name).vote_count
+            Option.objects.filter(poll = pk, option_name = alreadyselectedoption.option_name).update(vote_count = v_count - 1)
+            v_count = Option.objects.get(poll = pk, option_name = option_name['current']).vote_count
+            Option.objects.filter(poll = pk, option_name = option_name['current']).update(vote_count = v_count + 1)
+            
+        to_frontend['success'] = True
+        to_frontend['msg'] = "vote casted successfully"
+        print("vote cast")
+        return Response(to_frontend)
+        
+    #increase vote count
+    option_vote_count = Option.objects.get(option_name = option_name['current'],
+                               poll=poll).vote_count
+    poll_vote_count = Poll.objects.get(id=poll).vote_count
+    
+   
 
     obj = PollVote()
     obj.option_name = optionID
     obj.owner = voterID
     obj.poll = poll
     obj.save()
-    obj_option = Option.objects.filter(option_name = option_name,
+    obj_option = Option.objects.filter(option_name = option_name['current'],
                             poll=poll)
     obj_option.update(vote_count = option_vote_count+1) 
     obj_election = Poll.objects.filter(id=poll)
