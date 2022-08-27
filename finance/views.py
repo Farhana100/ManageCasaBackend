@@ -48,6 +48,7 @@ def getExpenseInfo(request, username):
     data = [dict(each) for each in serializer.data]
     to_frontend = {
         'expenses': data,
+        'total_fund': building_id.total_fund
     }
         
     return Response(to_frontend)
@@ -59,6 +60,27 @@ def updateCharge(request, username):
     to_frontend = {
         'success': True,
         'msg': 'updated',
+    }
+    
+    return Response(to_frontend)
+
+@api_view(['POST'])
+def addExpense(request, username):
+    print("ashlo data:", request.data)
+    buildingId = Building.objects.get(user__username = username)
+    obj = Expense()
+    obj.building = buildingId
+    obj.date = request.data['date']
+    obj.category = request.data['purpose']
+    obj.paid_amount = request.data['amount']
+    obj.comment = request.data['comment']
+    obj.save()
+    
+    Building.objects.filter(user__username = username).update(total_fund = buildingId.total_fund - float(request.data['amount']))
+    
+    to_frontend = {
+        'success': True,
+        'msg': 'added',
     }
     
     return Response(to_frontend)
