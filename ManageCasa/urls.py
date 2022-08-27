@@ -14,6 +14,7 @@ urlpatterns = [
     path('', include('user.urls')),
     path('', include('apartment.urls')),
     path('', include('election.urls')),
+    path('', include('serviceProvider.urls')),
     path('admin/', admin.site.urls),
 
     # auth token
