@@ -137,13 +137,9 @@ def deleteElection(request, pk):
         "msg": "",
     }
     
-    try:
-        CommitteeElection.objects.filter(id=pk).delete()
-    except:
-        print('election could not be cancelled')
-        to_frontend['msg'] = "election not cancelled!"
-        return Response(to_frontend)
 
+    CommitteeElection.objects.filter(id=pk).delete()
+    
     to_frontend['success'] = True
     to_frontend['msg'] = "election cancelled successfully"
     return Response(to_frontend)

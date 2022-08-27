@@ -29,7 +29,8 @@ class Building(models.Model):
     phone_number = models.IntegerField(default=0)
     num_of_apartments = models.IntegerField(default=0)
     num_of_tenants = models.IntegerField(default=0)
-    service_charge_amount = models.IntegerField(default=0)
+    service_charge_amount = models.FloatField(default=0)
+    total_fund = models.FloatField(default=0)
 
     def __str__(self):
         return self.user.username

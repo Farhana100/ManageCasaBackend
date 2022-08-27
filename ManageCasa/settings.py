@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'election',
     'poll',
     'serviceProvider',
+    'finance',
 ]
 
 MIDDLEWARE = [

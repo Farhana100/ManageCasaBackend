@@ -9,13 +9,13 @@ from rest_framework_simplejwt.views import (
     TokenVerifyView,
 )
 
-
 urlpatterns = [
     path('', include('user.urls')),
     path('', include('apartment.urls')),
     path('', include('election.urls')),
     path('', include('serviceProvider.urls')),
     path('', include('poll.urls')),
+    path('', include('finance.urls')),
     path('admin/', admin.site.urls),
 
     # auth token
