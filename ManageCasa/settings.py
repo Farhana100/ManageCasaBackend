@@ -1,6 +1,7 @@
 import os
 from datetime import timedelta
 from pathlib import Path
+from corsheaders.defaults import default_headers
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -127,7 +128,15 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CORS_ORIGIN_WHITELIST = [
     "http://localhost:3000",
+    "https://checkout.stripe.com",
 ]
+CORS_ALLOW_HEADERS = default_headers + (
+    'Access-Control-Allow-Origin',
+)
+
+CORS_ORIGIN_ALLOW_ALL = True
+
+SITE_URL = "http://127.0.0.1:3000"
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
 MEDIA_URL = '/media/'
@@ -140,6 +149,8 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.AllowAny',
     ]
 }
+
+STRIPE_SECRET_KEY = 'sk_test_51LbejzEt2WQeUGdbvVc0ke5mo8Mke4qU4tNcFKI66UfHUyawZ2Bi225oZC6DYmTMTrTq6E8IhR0v19zNjs9K1j5C00Vujbz0eQ'
 
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=5),
@@ -172,3 +183,4 @@ SIMPLE_JWT = {
     'SLIDING_TOKEN_LIFETIME': timedelta(minutes=5),
     'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=1),
 }
+
