@@ -273,16 +273,7 @@ def createOwner(request):
     email = request.data['email']
     phone_number = request.data['phone_number']
     bkash_acc_number = request.data['bkash_acc_number']
-    selectedFiles = request.data['selectedFiles']
-
-    print('why error ?', password)
-    # to_frontend = {
-    #     "error": "username",
-    #     "msg": "test",
-    #     "success": False,
-    # }
-    # return Response(to_frontend)
-    # create user
+    image = request.data['image']
 
     user = None
     owner = None
@@ -371,6 +362,16 @@ def createOwner(request):
         return Response(to_frontend)
     print(apartment)
 
+    try:
+        owner.image = image
+        owner.save()
+    except:
+        to_frontend = {
+            "error": "",
+            "msg": "image not saved",
+            "success": False,
+        }
+        return Response(to_frontend)
     return Response(to_frontend)
 
 
@@ -481,15 +482,7 @@ def createTenant(request):
     email = request.data['email']
     phone_number = request.data['phone_number']
     bkash_acc_number = request.data['bkash_acc_number']
-    selectedFiles = request.data['selectedFiles']
-
-    # to_frontend = {
-    #     "error": "username",
-    #     "msg": "test",
-    #     "success": False,
-    # }
-    # return Response(to_frontend)
-    # create user
+    image = request.data['image']
 
     user = None
     tenant = None
@@ -577,6 +570,17 @@ def createTenant(request):
         }
         return Response(to_frontend)
     print(apartment)
+
+    try:
+        tenant.image = image
+        tenant.save()
+    except:
+        to_frontend = {
+            "error": "",
+            "msg": "image not saved",
+            "success": False,
+        }
+        return Response(to_frontend)
 
     return Response(to_frontend)
 
