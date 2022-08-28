@@ -8,4 +8,6 @@ urlpatterns = [
     path('getExpenseInfo/<str:username>', getExpenseInfo, name = 'getExpenseInfo'),
     path('addExpense/<str:username>', addExpense, name = 'addExpense'),
     path('stripeCheckoutSession', stripeCheckoutSession, name = 'stripeCheckoutSession'),
+    path('getDues/<int:id>', getDues, name = 'getDues'),
+    path('duesPayment', duesPayment, name = 'duesPayment'),
 ]
