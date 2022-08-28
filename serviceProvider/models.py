@@ -1,4 +1,6 @@
 from apartment.models import *
+from django.db import models
+from django.contrib.auth.models import User
 
 
 # Create your models here.
@@ -41,8 +43,8 @@ class ServicePackage(models.Model):
     subscription_duration = models.FloatField(default=1, null=False, help_text='months')
 
 
-class ApartmentSubscription(models.Model):
-    apartment = models.ForeignKey(Apartment, null=False, on_delete=models.CASCADE)
+class UserSubscription(models.Model):
+    user = models.ForeignKey(User, null=False, on_delete=models.CASCADE)
     package = models.ForeignKey(ServicePackage, null=False, on_delete=models.CASCADE)
     subscription_date = models.DateTimeField(default=None, blank=True, null=True)
     last_payment_date = models.DateTimeField(default=None, blank=True, null=True)

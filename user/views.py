@@ -1,4 +1,5 @@
 from django.contrib.auth import authenticate
+from django.contrib.auth.hashers import make_password
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from .serializer import *
@@ -30,12 +31,13 @@ def userLogin(request):
         to_frontend = {
             "user_active": True,
             "username": user.username,
+            "uid": user.id,
             "userType": None,
             "msg": "Welcome " + user.username + "!",
             "token": token,
             "building": '',
         }
-
+        print('here')
         try:
             user.building
             to_frontend['userType'] = 'admin'
@@ -60,6 +62,7 @@ def userLogin(request):
         to_frontend = {
             "user_active": False,
             "username": None,
+            "uid": -1,
             "userType": None,
             "msg": "Invalid username or password",
             "token": None,
@@ -117,7 +120,7 @@ def createBuilding(request):
     building = request.data['building']
 
     try:
-        User(username=user['username'], password=user['password'], email=user['email']).save()
+        User(username=user['username'], password=make_password(user['password']), email=user['email']).save()
     except:
         print('Error: User object could not be created 1')
         return Response(None)
@@ -203,12 +206,13 @@ def createOwner(request):
     lastname = request.data['lastname']
     firstname = request.data['firstname']
     apartment_pk = request.data['apartment_pk']
-    password = request.data['password']
+    password = make_password(request.data['password'])
     email = request.data['email']
     phone_number = request.data['phone_number']
     bkash_acc_number = request.data['bkash_acc_number']
     selectedFiles = request.data['selectedFiles']
 
+    print('why error ?', password)
     # to_frontend = {
     #     "error": "username",
     #     "msg": "test",
@@ -410,7 +414,7 @@ def createTenant(request):
     lastname = request.data['lastname']
     firstname = request.data['firstname']
     apartment_pk = request.data['apartment_pk']
-    password = request.data['password']
+    password = make_password(request.data['password'])
     email = request.data['email']
     phone_number = request.data['phone_number']
     bkash_acc_number = request.data['bkash_acc_number']

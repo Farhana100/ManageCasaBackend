@@ -9,4 +9,5 @@ urlpatterns = [
     path('updateServiceProvider', updateServiceProvider, name='updateServiceProvider'),
     path('createServicePackage', createServicePackage, name='createServicePackage'),
     path('deleteServicePackage', deleteServicePackage, name='deleteServicePackage'),
+    path('subscribePackage', subscribePackage, name='subscribePackage'),
 ]

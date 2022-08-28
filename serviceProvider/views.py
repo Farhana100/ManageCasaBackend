@@ -193,3 +193,26 @@ def deleteServicePackage(request):
     return Response(to_frontend)
 
 
+
+@api_view(['POST'])
+def subscribePackage(request):
+    package_pk = request.data['package_pk']
+    user_pk = request.data['user_pk']
+    print(request.data)
+
+    to_frontend = {
+        'success': False,
+        'msg': 'test',
+    }
+    return Response(to_frontend)
+
+
+    try:
+        package = ServicePackage.objects.get(id=pk).delete()
+    except:
+        print('Error: package not deleted')
+        to_frontend['msg'] = 'package not deleted'
+        return Response(to_frontend)
+
+    to_frontend['success'] = True
+

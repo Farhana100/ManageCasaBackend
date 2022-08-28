@@ -10,10 +10,10 @@ class ServicePackageAdmin(admin.ModelAdmin):
     list_display = ('service_provider', 'title', 'fee', 'subscription_duration')
 
 
-class ApartmentSubscriptionAdmin(admin.ModelAdmin):
-    list_display = ('apartment', 'package', 'subscription_date', 'last_payment_date')
+class UserSubscriptionAdmin(admin.ModelAdmin):
+    list_display = ('user', 'package', 'subscription_date', 'last_payment_date')
 
 
 admin.site.register(ServiceProvider, ServiceProviderAdmin)
 admin.site.register(ServicePackage, ServicePackageAdmin)
-admin.site.register(ApartmentSubscription, ApartmentSubscriptionAdmin)
+admin.site.register(UserSubscription, UserSubscriptionAdmin)
