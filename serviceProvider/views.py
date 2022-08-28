@@ -58,7 +58,7 @@ def getAllServiceProviders(request, username):
 
 
 @api_view(['GET'])
-def getServiceProvider(request, id):
+def getServiceProvider(request, id, uid):
     print("get service provider ", id)
     try:
         serviceP = ServiceProvider.objects.get(id=id)
@@ -90,7 +90,8 @@ def getServiceProvider(request, id):
         'title': p.title,
         'description': p.description,
         'fee': p.fee,
-        'duration': p.subscription_duration
+        'duration': p.subscription_duration,
+        'subscribed': UserSubscription.objects.filter(user_id=uid, package_id=p.id).exists()
     } for p in packages]
 
     to_frontend = {
@@ -204,15 +205,66 @@ def subscribePackage(request):
         'success': False,
         'msg': 'test',
     }
-    return Response(to_frontend)
-
 
     try:
-        package = ServicePackage.objects.get(id=pk).delete()
+        package = ServicePackage.objects.get(id=package_pk)
     except:
-        print('Error: package not deleted')
-        to_frontend['msg'] = 'package not deleted'
+        print('Error: package not found')
+        to_frontend['msg'] = 'package not found'
+        return Response(to_frontend)
+
+    try:
+        user = User.objects.get(id=user_pk)
+    except:
+        print('Error: user not found')
+        to_frontend['msg'] = 'user not found'
+        return Response(to_frontend)
+
+    try:
+        UserSubscription(user=user, package=package).save()
+    except:
+        print('Error: subscription failed')
+        to_frontend['msg'] = 'subscription failed'
         return Response(to_frontend)
 
     to_frontend['success'] = True
+    return Response(to_frontend)
+
+
+
+@api_view(['POST'])
+def unsubscribePackage(request):
+    package_pk = request.data['package_pk']
+    user_pk = request.data['user_pk']
+    print(request.data)
+
+    to_frontend = {
+        'success': False,
+        'msg': 'test',
+    }
+
+    try:
+        package = ServicePackage.objects.get(id=package_pk)
+    except:
+        print('Error: package not found')
+        to_frontend['msg'] = 'package not found'
+        return Response(to_frontend)
+
+    try:
+        user = User.objects.get(id=user_pk)
+    except:
+        print('Error: user not found')
+        to_frontend['msg'] = 'user not found'
+        return Response(to_frontend)
+
+    try:
+        UserSubscription.objects.get(user=user, package=package).delete()
+    except:
+        print('Error: subscription failed')
+        to_frontend['msg'] = 'subscription failed'
+        return Response(to_frontend)
+
+    to_frontend['success'] = True
+    return Response(to_frontend)
+
 
