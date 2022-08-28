@@ -18,8 +18,6 @@ class Migration(migrations.Migration):
             model_name='usersubscription',
             name='subscription_date',
 
-            field=models.DateTimeField(auto_now_add=True),
-
             field=models.DateTimeField(auto_now_add=True, null=True),
 
         ),
