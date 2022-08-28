@@ -10,4 +10,6 @@ urlpatterns = [
     path('stripeCheckoutSession', stripeCheckoutSession, name = 'stripeCheckoutSession'),
     path('getDues/<int:id>', getDues, name = 'getDues'),
     path('duesPayment', duesPayment, name = 'duesPayment'),
+    path('getPayments/<int:id>', getPayments, name='getPayments'),
 ]
+
