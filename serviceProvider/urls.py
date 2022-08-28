@@ -5,6 +5,7 @@ from .views import *
 urlpatterns = [
     path('getAllServiceProviders/<str:username>', getAllServiceProviders, name='getAllServiceProviders'),
     path('getServiceProvider/<int:id>/<int:uid>', getServiceProvider, name='getServiceProvider'),
+    path('createServiceProvider', createServiceProvider, name='createServiceProvider'),
     path('deleteServiceProvider', deleteServiceProvider, name='deleteServiceProvider'),
     path('updateServiceProvider', updateServiceProvider, name='updateServiceProvider'),
     path('createServicePackage', createServicePackage, name='createServicePackage'),

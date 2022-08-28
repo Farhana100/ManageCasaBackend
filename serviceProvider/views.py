@@ -20,6 +20,54 @@ from .models import *
 # details
 # website
 
+@api_view(['POST'])
+def createServiceProvider(request):
+    print(request.data)
+    # service provider
+    building = request.data['building']
+    company_name = request.data['company_name']
+    address = request.data['address']
+    image = request.data['image']
+    phone_number = request.data['phone_number']
+    bkash_acc_number = request.data['bkash_acc_number']
+    details = request.data['details']
+    website = request.data['website']
+
+    print(image)
+
+    to_frontend = {
+        "msg": "test",
+        "success": False,
+    }
+    # return Response(to_frontend)
+
+    try:
+        building = Building.objects.get(user__username=building)
+    except:
+        print("building not found")
+        to_frontend['msg'] = "building not found"
+        return Response(to_frontend)
+
+    try:
+        ServiceProvider(building=building,
+                        company_name=company_name,
+                        address=address,
+                        image=image,
+                        phone_number=phone_number,
+                        bkash_acc_number=bkash_acc_number,
+                        details=details,
+                        website=website).save()
+    except:
+        print("Service Provider creation failed")
+        to_frontend['msg'] = "Service Provider creation failed"
+        return Response(to_frontend)
+
+    to_frontend['msg'] = "Service Provider created"
+    to_frontend['success'] = True
+    print("Service Provider created")
+    return Response(to_frontend)
+
+
 @api_view(['GET'])
 def getAllServiceProviders(request, username):
     print("all service providers of ", username)
