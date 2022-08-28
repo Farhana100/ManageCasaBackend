@@ -114,7 +114,71 @@ def getBuilding(request, pk):
 
 
 @api_view(['POST'])
+def userRegister(request):
+    # user
+    # address
+    # phone_number
+    # num_of_apartments
+    # num_of_tenants
+    # service_charge_amount
+    # total_fund
+
+    print("data ", request.data)
+    address = request.data['address']
+    username = request.data['username']
+    lastname = request.data['lastname']
+    firstname = request.data['firstname']
+    password = make_password(request.data['password'])
+    email = request.data['email']
+    phone_number = request.data['phone_number']
+    bkash_acc_number = request.data['bkash_acc_number']
+
+    to_frontend = {
+        "user_active": False,
+    }
+
+    # return Response(to_frontend)
+
+    try:
+        User(username=username, password=password, first_name=firstname, last_name=lastname, email=email).save()
+        user = User.objects.get(username=username)
+    except:
+        print('user could not be created')
+        to_frontend['msg'] = 'user could not be created'
+        return Response(to_frontend)
+
+    try:
+        Building(user=user, address=address, phone_number=phone_number, bkash_acc_number=bkash_acc_number).save()
+    except:
+        user.delete()
+        print('building could not be created')
+        to_frontend['msg'] = 'building could not be created'
+        return Response(to_frontend)
+
+    token = get_tokens_for_user(user)
+    to_frontend = {
+        "user_active": True,
+        "username": user.username,
+        "uid": user.id,
+        "userType": 'admin',
+        "msg": "Welcome " + user.username + "!",
+        "token": token,
+        "building": '',
+    }
+
+    return Response(to_frontend)
+
+
+@api_view(['POST'])
 def createBuilding(request):
+    # user
+    # address
+    # phone_number
+    # num_of_apartments
+    # num_of_tenants
+    # service_charge_amount
+    # total_fund
+
     print("data ", request.data)
     user = request.data['user']
     building = request.data['building']
@@ -200,7 +264,6 @@ def getOwner(request, pk):
 
 @api_view(['POST'])
 def createOwner(request):
-
     print("data ", request.data)
     username = request.data['username']
     lastname = request.data['lastname']
@@ -226,7 +289,7 @@ def createOwner(request):
     # get user
 
     to_frontend = {
-        "error":"",
+        "error": "",
         "msg": "",
         "success": True,
     }
@@ -236,7 +299,7 @@ def createOwner(request):
         user = User.objects.get(username=username)
 
         to_frontend = {
-            "error":"username",
+            "error": "username",
             "msg": "username already exists",
             "success": False,
         }
@@ -251,7 +314,7 @@ def createOwner(request):
         except:
             print('Error: User object could not be created 1')
             to_frontend = {
-                "error":"",
+                "error": "",
                 "msg": "uknown error 1",
                 "success": False,
             }
@@ -267,7 +330,7 @@ def createOwner(request):
             User(username=username).delete()
             print('Error: Owner object could not be created 3')
             to_frontend = {
-                "error":"",
+                "error": "",
                 "msg": "uknown error 2",
                 "success": False,
             }
@@ -288,7 +351,7 @@ def createOwner(request):
         print('Error: apartment not found 4')
 
         to_frontend = {
-            "error":"",
+            "error": "",
             "msg": "uknown error 3",
             "success": False,
         }
@@ -301,7 +364,7 @@ def createOwner(request):
         # delete created user and owner, should cascade and delete owner as well
         User(username=username).delete()
         to_frontend = {
-            "error":"",
+            "error": "",
             "msg": "uknown error 4",
             "success": False,
         }
@@ -433,7 +496,7 @@ def createTenant(request):
     # get user
 
     to_frontend = {
-        "error":"",
+        "error": "",
         "msg": "",
         "success": True,
     }
@@ -443,7 +506,7 @@ def createTenant(request):
         user = User.objects.get(username=username)
 
         to_frontend = {
-            "error":"username",
+            "error": "username",
             "msg": "username already exists",
             "success": False,
         }
@@ -458,7 +521,7 @@ def createTenant(request):
         except:
             print('Error: User object could not be created 1')
             to_frontend = {
-                "error":"",
+                "error": "",
                 "msg": "uknown error 1",
                 "success": False,
             }
@@ -474,7 +537,7 @@ def createTenant(request):
             User(username=username).delete()
             print('Error: Tenant object could not be created 3')
             to_frontend = {
-                "error":"",
+                "error": "",
                 "msg": "uknown error 2",
                 "success": False,
             }
@@ -495,7 +558,7 @@ def createTenant(request):
         print('Error: apartment not found 4')
 
         to_frontend = {
-            "error":"",
+            "error": "",
             "msg": "uknown error 3",
             "success": False,
         }
@@ -508,7 +571,7 @@ def createTenant(request):
         # delete created user and tenant, should cascade and delete tenant as well
         User(username=username).delete()
         to_frontend = {
-            "error":"",
+            "error": "",
             "msg": "uknown error 4",
             "success": False,
         }

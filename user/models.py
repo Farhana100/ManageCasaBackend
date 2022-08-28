@@ -27,6 +27,7 @@ class Building(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     address = models.CharField(max_length=50)
     phone_number = models.IntegerField(default=0)
+    bkash_acc_number = models.IntegerField(default=0)
     num_of_apartments = models.IntegerField(default=0)
     num_of_tenants = models.IntegerField(default=0)
     service_charge_amount = models.FloatField(default=0)
