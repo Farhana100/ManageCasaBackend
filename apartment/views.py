@@ -228,22 +228,7 @@ def updateApartment(request):
     apartment_number = request.data['apartment_number']
     rent = request.data['rent']
     service_charge_due_amount = request.data['service_charge_due_amount']
-    selectedFiles = request.data['selectedFiles']
-
-    if selectedFiles:
-        print("selected image files: ", selectedFiles[0][5:])
-        print(type(selectedFiles[0]))
-    # if selectedFiles:
-    #     img_temp = NamedTemporaryFile(delete=True)
-    #     img_temp.write(urlopen(selectedFiles[0]).read())
-    #     img_temp.flush()
-    #     print("file ", img_temp)
-
-    # to_frontend = {
-    #     'msg': 'test',
-    #     'error': True,
-    # }
-    # return Response(to_frontend)
+    images_count = request.data['images_count']
 
     try:
         building = Building.objects.get(user__username=building)
@@ -278,15 +263,18 @@ def updateApartment(request):
         }
         return Response(to_frontend)
 
-    if selectedFiles:
+    for index in range(int(images_count)):
+        filename = "img_" + str(index)
+        print(filename, request.data[filename])
         try:
-            ApartmentImage(apartment=apartment, image=selectedFiles[0][5:]).save()
+            ApartmentImage(apartment=apartment, image=request.data[filename]).save()
         except:
             to_frontend = {
                 'msg': "no image error",
                 'error': True,
             }
             return Response(to_frontend)
+
 
     to_frontend = {
         'msg': 'Apartment updated successfully',
