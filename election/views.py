@@ -1,3 +1,4 @@
+from enum import auto
 from turtle import position
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -21,6 +22,8 @@ def createElection(request, username):
     vote_start = request.data['votestartData']
     vote_end = request.data['voteendData']
     auto_approve = request.data['autoapprove']
+    
+    print("auto appr:", auto_approve)
 
     building = Building.objects.get(user__username=username)
 
@@ -28,11 +31,6 @@ def createElection(request, username):
         "success": False,
         "msg": "",
     }
-    
-    if(auto_approve == "true"):
-        auto_approve = True
-    else:
-        auto_approve = False
 
     #create election
     CommitteeElection(building=building,
@@ -149,7 +147,6 @@ def deleteElection(request, pk):
 def createNominee(request):
     name = request.data['name']
     electionID = request.data['election_id']
-    approval_status = request.data['approval_status']
 
     ownerID = Owner.objects.get(user__username=name)
     election = CommitteeElection(id=electionID)
@@ -157,6 +154,8 @@ def createNominee(request):
     autoapprove = CommitteeElection.objects.get(id=electionID).autoapprove
     if(autoapprove == True):
         approval_status = "Approved"
+    else:
+        approval_status = "Pending"
     print(approval_status)
 
     to_frontend = {
@@ -169,6 +168,8 @@ def createNominee(request):
             committee_election=election,
             approval_status=approval_status).save()
     
+    if(approval_status == "Approved"):
+        CommitteeElection.objects.filter(id=electionID).update(no_of_candidates = CommitteeElection.objects.get(id=electionID).no_of_candidates + 1)
 
     to_frontend['success'] = True
     to_frontend['msg'] = "nominee created successfully"
