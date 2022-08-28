@@ -137,3 +137,59 @@ def updateServiceProvider(request):
         'data': []
     }
     return Response(to_frontend)
+
+
+@api_view(['POST'])
+def createServicePackage(request):
+    print(request.data)
+    id = request.data['serviceProvider_pk']
+    title = request.data['title']
+    description = request.data['description']
+    fee = request.data['fee']
+    subscription_duration = request.data['subscription_duration']
+
+    to_frontend = {
+        'success': False,
+        'msg': 'test',
+    }
+
+    try:
+        serviceP = ServiceProvider.objects.get(id=id)
+    except:
+        print('Error: ', 'service provider not found')
+        to_frontend['msg'] = 'service provider not found'
+        return  Response(to_frontend)
+
+    try:
+        ServicePackage(service_provider=serviceP, title=title, description=description, fee=fee, subscription_duration=subscription_duration).save()
+    except:
+        print('Error: ', 'package could not be created')
+        to_frontend['msg'] = 'package could not be created'
+        return Response(to_frontend)
+
+    to_frontend['success'] = True
+    to_frontend['msg'] = 'package created'
+    return Response(to_frontend)
+
+
+@api_view(['POST'])
+def deleteServicePackage(request):
+    pk = request.data['pk']
+    print(request.data)
+
+    to_frontend = {
+        'success': False,
+        'msg': 'test',
+    }
+
+    try:
+        package = ServicePackage.objects.get(id=pk).delete()
+    except:
+        print('Error: package not deleted')
+        to_frontend['msg'] = 'package not deleted'
+        return Response(to_frontend)
+
+    to_frontend['success'] = True
+    return Response(to_frontend)
+
+

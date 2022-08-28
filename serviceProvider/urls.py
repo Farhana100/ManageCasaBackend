@@ -7,4 +7,6 @@ urlpatterns = [
     path('getServiceProvider/<int:id>', getServiceProvider, name='getServiceProvider'),
     path('deleteServiceProvider', deleteServiceProvider, name='deleteServiceProvider'),
     path('updateServiceProvider', updateServiceProvider, name='updateServiceProvider'),
+    path('createServicePackage', createServicePackage, name='createServicePackage'),
+    path('deleteServicePackage', deleteServicePackage, name='deleteServicePackage'),
 ]
