@@ -181,3 +181,34 @@ def duesPayment(request):
         }
 
         return Response(to_frontend)
+
+
+@api_view(['GET'])
+def getPayments(request, id):
+    try:
+        payments = Bill.objects.filter(user_id=id, status=True).order_by('due_date')
+    except:
+        to_frontend = {
+            'success': False,
+            'data': [],
+        }
+        return Response(to_frontend)
+
+    payments = [{
+        'pay_to': d.service_provider.company_name if d.service_provider else "Building Fund",
+        'due_date': d.due_date.date(),
+        'payment_date': d.payment_date.date(),
+        'description': d.description,
+        'amount': d.payable_amount,
+        'transaction_id': d.transaction_number,
+        # 'id': d.id,
+        # 'is_service_charge': False,
+        # 'selected': False
+    } for d in payments]
+
+    to_frontend = {
+        'success': True,
+        'data': payments,
+    }
+
+    return Response(to_frontend)
