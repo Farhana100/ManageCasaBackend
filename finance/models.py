@@ -21,6 +21,7 @@ class Expense(models.Model):
     paid_amount = models.FloatField(default=0, null=True)
     date = models.DateTimeField(default=0, null=True)
     category = models.CharField(max_length=30, null=True)
+    comment = models.TextField(null=True, blank=True)
     
     def __int__(self):
         return self.id
