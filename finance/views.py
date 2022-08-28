@@ -1,14 +1,21 @@
+from http import client
 from turtle import position
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+from django.http import JsonResponse
+
+from ManageCasa.settings import CORS_ORIGIN_WHITELIST
 from .serializer import *
 from apartment.serializer import *
 from user.serializer import *
 from .models import *
 from apartment.models import *
 from user.models import *
-import pytz
-from django.utils import timezone
+from django.conf import settings
+from django.shortcuts import redirect
+import stripe
+
+stripe.api_key = settings.STRIPE_SECRET_KEY
 
 # Create your views here.
 
@@ -17,12 +24,12 @@ def getFundInfo(request, username):
     building_id = Building.objects.get(user__username = username)
     service_charge_amount = building_id.service_charge_amount
     funds = Fund.objects.filter(building=building_id)
-    print(funds)
+    
     
     serializer = FundSerializer(funds, many=True)
     
     data = [dict(each) for each in serializer.data]
-    print("data:", data)
+    
     for each in data:
         each['payable_amount'] = service_charge_amount
         apart_no = Apartment.objects.get(owner=each['owner']).apartment_number
@@ -84,3 +91,26 @@ def addExpense(request, username):
     }
     
     return Response(to_frontend)
+
+
+@api_view(['POST'])
+def stripeCheckoutSession(request):
+    amount = request.data['amount']
+    
+    intent = stripe.PaymentIntent.create(
+    amount=amount,
+    currency="usd",
+    automatic_payment_methods={"enabled": True},
+    )
+    
+    to_frontend = {
+        'client_secret': intent.client_secret,
+        'success': True,
+    }
+    
+ 
+    print("checkout")
+    print(intent.client_secret)
+    return JsonResponse({'client_secret':intent.client_secret})
+
+
