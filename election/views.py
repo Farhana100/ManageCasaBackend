@@ -84,7 +84,7 @@ def getAllElections(request, username):
             
         #nomination start time < current time
         elif each.nomination_start_time <= current_time and each.phase.lower() == "pending":
-            CommitteeElection.objects.filter(pk = each.id).update(phase = "nomination")
+            CommitteeElection.objects.filter(pk = each.id).update(phase = "Nomination")
     
     serializer = CommitteeElectionSerializer(elections, many=True)
     return Response(serializer.data)
