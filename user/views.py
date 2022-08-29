@@ -1,11 +1,13 @@
 from django.contrib.auth import authenticate
 from django.contrib.auth.hashers import make_password
+from django.db.models.functions import datetime
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from .serializer import *
 from apartment.serializer import *
 from .models import *
 from apartment.models import *
+from datetime import date
 
 from rest_framework_simplejwt.tokens import RefreshToken
 
@@ -45,8 +47,30 @@ def userLogin(request):
         except AttributeError:
             try:
                 user.owner
+                apartment = Apartment.objects.filter(owner=user.owner)[0]
                 to_frontend['userType'] = 'owner'
-                to_frontend['building'] = Apartment.objects.filter(owner=user.owner)[0].building.user.username
+                to_frontend['building'] = apartment.building.user.username
+
+                #     check for service charge due
+
+                today = date.today()
+
+                # dd/mm/YY
+                d1 = int(today.strftime("%d/%m/%Y")[0:2])
+                print("d1 =", d1)
+
+                # ;-;
+                if d1 == 1 and apartment.paid_service_this_month == True:
+                    apartment.paid_service_this_month = False
+                    apartment.save()
+
+                if d1 >= 1 and not apartment.paid_service_this_month and apartment.service_charge_due_amount == 0:
+                    #         generate
+                    print('ima here')
+                    apartment.service_charge_due_amount = apartment.building.service_charge_amount
+                    apartment.save()
+
+
             except AttributeError:
                 try:
                     user.tenant

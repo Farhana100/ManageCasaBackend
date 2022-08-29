@@ -18,6 +18,7 @@ class Apartment(models.Model):
     apartment_number = models.CharField(max_length=30, null=False)  # flatno. 4f
     rent = models.IntegerField(default=0, null=True)
     service_charge_due_amount = models.IntegerField(default=0, blank=True, null=True)
+    paid_service_this_month = models.BooleanField(default=False, null=False)
 
     def __str__(self):
         return str(self.building) + '_' + str(self.floor_number) + self.apartment_number
