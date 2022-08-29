@@ -8,6 +8,7 @@ from apartment.serializer import *
 from .models import *
 from apartment.models import *
 from datetime import date
+from election.models import *
 
 from rest_framework_simplejwt.tokens import RefreshToken
 
@@ -638,4 +639,54 @@ def deleteTenant(request):
     }
     return Response(to_frontend)
 
+
 # --------------------------------------------------- Tenant end ----------------------------------------------->>>
+
+
+@api_view(['GET'])
+def getBasics(request, username):
+
+    to_frontend = {
+        "msg": "",
+        "success": False,
+    }
+
+    try:
+        building = Building.objects.get(user__username=username)
+    except:
+        print('building not found')
+        to_frontend['msg'] = 'building not found'
+        return Response(to_frontend)
+
+
+    allApartments = Apartment.objects.filter(building=building).order_by('floor_number', 'apartment_number')
+
+    number_of_apartments = len(allApartments)
+    number_of_floors = len(set(a.floor_number for a in allApartments))
+
+    number_of_tenants = 0
+    number_of_owners = 0
+
+    for a in allApartments:
+        if a.tenant:
+            number_of_tenants += 1
+        if a.owner:
+            number_of_owners += 1
+
+    service_charge = building.service_charge_amount
+    total_fund = building.total_fund
+
+    number_of_com_mems = len(CommitteeMember.objects.filter(building=building, status=True))
+
+    to_frontend = {
+        "msg": "",
+        "success": True,
+        'number_of_apartments' : number_of_apartments,
+        'number_of_floors' : number_of_floors,
+        'number_of_tenants' : number_of_tenants,
+        'number_of_owners' : number_of_owners,
+        'service_charge' : service_charge,
+        'total_fund' : total_fund,
+        'number_of_com_mems' : number_of_com_mems,
+    }
+    return Response(to_frontend)

@@ -5,6 +5,7 @@ urlpatterns = [
     path('login', userLogin, name='userLogin'),
     path('register', userRegister, name='userRegister'),
     path('getUser', getUser, name='getUser'),
+    path('getBasics/<str:username>', getBasics, name='getBasics'),
 
     path('getAllBuildings', getAllBuildings, name='getAllBuildings'),
     path('getBuilding/<int:pk>', getBuilding, name='getBuilding'),
