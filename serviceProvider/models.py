@@ -47,5 +47,5 @@ class UserSubscription(models.Model):
     user = models.ForeignKey(User, null=False, on_delete=models.CASCADE)
     package = models.ForeignKey(ServicePackage, null=False, on_delete=models.CASCADE)
     subscription_date = models.DateTimeField(blank=True, null=True)
-    # subscription_date = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+    due = models.BooleanField(default=False, null=False)
     last_payment_date = models.DateTimeField(default=None, blank=True, null=True)

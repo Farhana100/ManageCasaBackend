@@ -130,6 +130,9 @@ def generateDues(uid):
         return
 
     for sub in subs:
+        if sub.due:
+            continue
+
         months = float(floor((datetime.datetime.now(timezone.utc) - sub.subscription_date).days / 30))
         while months - sub.package.subscription_duration > 0:
             months -= sub.package.subscription_duration
@@ -158,6 +161,8 @@ def generateDues(uid):
                      due_date=datetime.datetime.now(timezone.utc),
                      status=False
                      ).save()
+                sub.due = True
+                sub.save()
             except:
                 pass
 
@@ -260,6 +265,7 @@ def duesPayment(request, username):
                 package = ServicePackage.objects.get(id=d['pay_for_pk'])
                 sub = UserSubscription.objects.get(user=user, package=package)
                 sub.last_payment_date = datetime.datetime.now(timezone.utc)
+                sub.due = False
                 sub.save()
 
         to_frontend = {
