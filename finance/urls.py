@@ -9,7 +9,7 @@ urlpatterns = [
     path('addExpense/<str:username>', addExpense, name = 'addExpense'),
     path('stripeCheckoutSession', stripeCheckoutSession, name = 'stripeCheckoutSession'),
     path('getDues/<int:id>', getDues, name = 'getDues'),
-    path('duesPayment', duesPayment, name = 'duesPayment'),
+    path('duesPayment/<str:username>', duesPayment, name = 'duesPayment'),
     path('getPayments/<int:id>', getPayments, name='getPayments'),
 ]
 
