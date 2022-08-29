@@ -327,6 +327,29 @@ def isNominee(request, pk):
 @api_view(['POST'])
 def earlyStop(request, pk):
     CommitteeElection.objects.filter(pk = pk).update(phase = "Ended", voting_end_time = timezone.now())
+    nominees = Nominee.objects.filter(committee_election = pk)
+    vote_max_count = 0;
+    nominee_id = ""
+    for nom in nominees:
+        if nom.vote_count > vote_max_count:
+            vote_max_count = nom.vote_count
+            nominee_id = nom.owner
+    
+    CommitteeElection.objects.filter(pk = pk).update(elected_member = nominee_id)
+    building_id = CommitteeElection.objects.get(pk = pk).building
+    position = CommitteeElection.objects.get(pk = pk).position
+    
+    CommitteeMember.objects.filter(building=building_id, position=position).update(status = "inactive")
+    obj = CommitteeMember()
+    obj.building = building_id
+    obj.committee_election = CommitteeElection.objects.get(pk = pk)
+    obj.owner = nominee_id
+    obj.position = position
+    obj.status = "active"
+    obj.start_date = timezone.now()
+    obj.save()
+    
+    
     to_frontend = {
         "success": True,
     }
