@@ -1,6 +1,3 @@
-from http import client
-from turtle import position
-
 from django.db.models.functions import datetime
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -118,11 +115,6 @@ def stripeCheckoutSession(request):
     print("checkout")
     print(intent.client_secret)
     return JsonResponse({'client_secret':intent.client_secret})
-
-
-
-
-    return Response(to_frontend)
 
 
 @api_view(['GET'])
