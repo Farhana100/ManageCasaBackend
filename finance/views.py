@@ -197,12 +197,14 @@ def duesPayment(request, username):
                      status=True
                      ).save()
                 
-                # obj = Fund()
-                # obj.building = buildingId
-                # obj.owner = apartment.owner
-                # obj.paid_amount = d['amount']
-                # obj.date = datetime.datetime.now()
-                # obj.save()
+                obj = Fund()
+                obj.building = buildingId
+                obj.owner = apartment.owner
+                obj.paid_amount = d['amount']
+                obj.date = datetime.datetime.now()
+                obj.save()
+                
+                Building.objects.filter(user__username=username).update(total_fund=buildingId.total_fund + d['amount'])
             else:
                 bill = Bill.objects.get(id=d['id'])
                 bill.status = True
