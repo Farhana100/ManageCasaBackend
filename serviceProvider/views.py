@@ -1,3 +1,6 @@
+from datetime import timezone
+
+from django.db.models.functions import datetime
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from .models import *
@@ -343,7 +346,7 @@ def subscribePackage(request):
         return Response(to_frontend)
 
     try:
-        UserSubscription(user=user, package=package).save()
+        UserSubscription(user=user, package=package, subscription_date=datetime.datetime.now(timezone.utc)).save()
     except:
         print('Error: subscription failed')
         to_frontend['msg'] = 'subscription failed'

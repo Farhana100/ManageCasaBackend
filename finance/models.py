@@ -1,6 +1,6 @@
 from django.db import models
 
-from serviceProvider.models import ServiceProvider
+from serviceProvider.models import *
 from user.models import *
 from apartment.models import *
 
@@ -39,6 +39,7 @@ class Expense(models.Model):
 class Bill(models.Model):
     user = models.ForeignKey(User, null=False, on_delete=models.CASCADE)
     service_provider = models.ForeignKey(ServiceProvider, null=True, on_delete=models.CASCADE, blank=True, help_text='null means service charge')
+    package = models.ForeignKey(ServicePackage, null=True, on_delete=models.CASCADE, blank=True, help_text='null means service charge')
     payable_amount = models.FloatField(default=0, null=True)
     due_date = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     payment_date = models.DateTimeField(auto_now_add=True, blank=True, null=True)

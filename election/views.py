@@ -1,14 +1,9 @@
-from enum import auto
-from turtle import position
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from .serializer import *
-from apartment.serializer import *
-from user.serializer import *
 from .models import *
 from apartment.models import *
 from user.models import *
-import pytz
 from django.utils import timezone
 
 from rest_framework_simplejwt.tokens import RefreshToken
