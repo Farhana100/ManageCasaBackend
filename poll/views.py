@@ -143,6 +143,17 @@ def deletePoll(request, pk):
 @api_view(['POST'])
 def earlyStopPoll(request, pk):
     Poll.objects.filter(id = pk).update(phase = "Ended", end_time = timezone.now())
+    
+    options = Option.objects.filter(poll = pk)
+    vote_max_count = 0;
+    option_name = ""
+    for opt in options:
+        if opt.vote_count > vote_max_count:
+            vote_max_count = opt.vote_count
+            option_name = opt.option_name
+            
+    Poll.objects.filter(pk = pk).update(selected_option = option_name)
+            
     to_frontend = {
         "success": True,
     }
