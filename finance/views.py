@@ -235,6 +235,7 @@ def duesPayment(request, username):
             if d['is_service_charge']:
                 apartment = Apartment.objects.get(id=d['id'])
                 apartment.service_charge_due_amount -= d['amount']
+                apartment.paid_service_this_month = True
                 apartment.save()
 
                 # create new bill for service charge
